@@ -1,0 +1,380 @@
+---
+title: "Progetto di FP&S: Spotify Top Tracks Dataset"
+author: "Riccardo Cervero"
+date: "5/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Progetto di FP&S: Spotify Top Tracks Dataset
+```{r}
+##Caricamento pacchetti
+library(dplyr)
+library(plyr)
+library(purrr)
+library(ggplot2)
+library(memisc)
+library(e1071)
+library(EnvStats)
+
+##Funzioni
+
+#Calcolo della moda
+moda <- function(x) {return(unique(x)[which.max(tabulate(match(x, unique(x))))])}
+
+#Calcolo dell'indice di Gini normalizzato
+G_normalizzato <- function(x){
+  G=1-sum((table(x)/length(x))^2)
+  n=length(unique(x))
+  return(G*(n/(n-1)))
+}
+
+#Raggruppamento delle osservazioni per decenni
+to_decade <- function(v){return(v-v%%10)}
+
+#Calcolo del coefficiente di variazione
+cv <- function(x){return(sd(x)/abs(mean(x)))}
+
+#Calcolo della simmetria
+m3 <- function(x){return(skewness(x,na.rm=T))}
+
+#Calcolo della curtosi
+m4 <- function(x){return(kurtosis(x,na.rm=T,method="moment",excess=F))}
+
+
+#Analisi preliminare di una qualsiasi variabile numerica
+AnPrel <- function(col) {
+  #Statistiche preliminari
+  s<-summary(col)
+  stat <- c()
+  for(i in 1:6) {stat<-c(stat,s[[i]])}
+  #Moda
+  m<-moda(col)
+  stat<-c(stat,m)
+  #Varianza
+  v<-var(col)
+  stat<-c(stat,v)
+  #Coefficiente di variazione
+  ccv<-cv(col)
+  stat<-c(stat,ccv)
+  #Asimmetria
+  as<-m3(col)
+  stat<-c(stat,as)
+  if_Z <- function(){if(as==0){return("simmetrica")}else if(as>0){return("asimmetrica positiva")}else if(as<0){return("asimmetrica negativa")}}
+  #Curtosi
+  cu<-m4(col)
+  stat<-c(stat,cu)
+  if_C <- function(){if(cu==3){return("normale.")}else if(cu>3){return("leptocurtica.")}else if(cu<3){return("platicurtica.")}}
+  #Somiglianza con la Normale
+  qqnorm(col)
+  qqline(col)
+  
+  indici <- c("Minimo","1o Qu.","Mediana","Media","3o Qu.","Massimo","Moda","Varianza","CdV","Asimmetria","Curtosi")
+  stat <- data.frame(cbind(indici,stat))
+  names(stat) <- c("Statistica","Valore")
+  print(paste("La distribuzione è",if_Z(),"e",if_C()))
+  return(stat)
+}
+```
+
+Il database è disponibile al link [kaggle/spotify-dataset](https://www.kaggle.com/yamaerenay/spotify-dataset-19212020-160k-tracks). La documentazione ufficiale è disponibile al link [spotify/documentation](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-features/).
+```{r}
+#Caricamento del dataset
+db <- read.csv("/Users/riccardocervero/Desktop/DataScience/Materie/Foundation of Prob & Stats/Progetto FPS - Riccardo Cervero/SpotifyDb.csv")
+```
+```{r}
+#Caricamento database ridotto
+db <- read.csv("/Users/riccardocervero/Desktop/SpotifyRidotto.csv")
+db <- db[ , !(colnames(db) %in% c("X")), drop=FALSE]
+```
+```{r}
+#Dimensione del dataset
+dim(db)
+```
+```{r}
+#Variabili: nome, tipologia e numero di modalità
+for (c in colnames(db)){
+ print(paste0(c," : ",typeof(db[[c]]),", ",length(unique(db[[c]])))) 
+}
+```
+* Acousticness è misura numerica di confidenza con cui è possibile definire "acustica" una traccia, compresa fra 0 e 1: se 1, indica massima certezza nell'affermare che il brano sia stato prodotto senza mezzi elettronici
+* Artists è la lista degli artisti a cui è attribuita la produzione del brano 
+* Danceability descrive il grado - misurato fra 0 e 1 - in cui la traccia può essere definita ballabile, come combinazione di vari elementi musicali, tra cui il tempo, la stabilità del ritmo, la forza del battito e la regolarità globale del brano: se 1, il pezzo raggiunge il massimo livello di ballabilità
+* Duration_ms è la durata in millisecondi
+* Energy rappresenta la percentuale di intensità e attività della traccia, sulla base di elementi percettivi quali sonorità, timbro, ed entropia globale
+* Explicit è una variabile binaria che rileva la presenza - quando pari a 1 - o meno di contenuto esplicito
+* Id è l'identificatore primario della traccia 
+* Instrumentalness misura, fra 0 e 1, l'assenza di contenuto vocale: più il valore si avvicina a 1, maggiore è la confidenza con cui è possibile definire "strumentale" la traccia
+* Key registra la stima della chiave complessiva della traccia, codificata in un valore numerico compreso fra 0 (Do) e 11 (Si) 
+* Liveness rileva la presenza di un pubblico udibile nella registrazione, definendone la probabilità: se superiore a 0,8, fornisce una forte evidenza che la traccia sia stata registrata live
+* Loudness è il volume complessivo in decibel, fra -60 e circa 4
+* Mode è la variabile binaria di modalità del brano: 1 se maggiore e 0 se minore
+* Name è il nome del brano
+* Release_date è la data di uscita in formato aaa-mm-gg, aaaa-mm o aaaa 
+* Speechiness indica la presenza di parlato: maggiore la somiglianza tra la traccia e un discorso - come nel caso del rap -, maggiore la vicinanza del valore a 1
+* Tempo è il ritmo misurato in battiti al minuto (bpm)
+* Valence definisce il grado di positività emotiva trasmessa dal brano, tra 0 e 1
+* Year è l'anno di uscita, dal 1921 al 2020
+* Popularity è una variabile intera compresa fra 0 e 100 che esprime il grado di popolarità del brano, calcolato a partire dal numero totale di riproduzioni su Spotify e da quanto sono recenti tali ascolti: in generale, tracce riprodotte molto frequente durante l'anno corrente avranno un valore di popolarità molto elevato
+Quest'ultima verrà considerata come principale variabile target nell'ambito della costruzione di modelli di regressione.
+
+##Pre-Processing
+```{r}
+#Rimozione delle variabili inutili
+vi <- c("artists","id","name")
+db <- db[ , !(colnames(db) %in% vi), drop=FALSE]
+```
+```{r}
+#Identificazione missing value
+db[!complete.cases(db),]
+#Missing values in "key"
+any(db$key==-1)
+```
+```{r}
+##Uniformare "release_date"
+#Conta i formati
+date_format <- c()
+for(i in 1:length(release_date)) {
+  if(!((class(try(as.Date(release_date[i], format= "%Y-%m-%d")))=="try-error")||(is.na(try(as.Date(release_date[i], format= "%Y-%m-%d")))))) {
+  date_format <- c(date_format,"YMD")
+} else if(!((class(try(as.Date(release_date[i], format= "%Y-%m")))=="try-error")||(is.na(try(as.Date(release_date[i], format= "%Y-%m")))))) {
+  date_format <- c(date_format,"YM")
+  } else if(!((class(try(as.Date(release_date[i], format= "%Y")))=="try-error")||(is.na(try(as.Date(release_date[i], format= "%Y")))))) {
+  date_format <- c(date_format,"Y")
+  }
+}
+
+table(date_format)
+100*table(date_format)/length(date_format)
+```
+
+##Analisi delle variabili qualitative
+
+###Analisi di "Year"
+```{r}
+#Tabella di frequenza
+print("Frequenze relative:")
+round(table(db$year)/length(db$year),4)
+```
+La variabile "year" è multimodale, quindi non ha senso calcolarne la moda.
+```{r}
+#Indice di Gini
+print("Indice di Gini normalizzato:")
+G_normalizzato(db$year)
+```
+La mutabilità del fenomeno tende ad essere massima.
+```{r}
+#Raggruppamento in decenni
+db$decade <- unlist(lapply(db$year,to_decade))
+db <- db[ , !(colnames(db) %in% c("release_date","year")), drop=FALSE]
+#Tabella di frequenza
+print("Frequenze relative:")
+round(table(db$decade)/length(db$decade),4)
+```
+```{r}
+#PieChart dei decenni
+y <- c()
+for(i in 1:length(unique(db$decade))) {y<-c(y,table(db$decade)[[i]])}
+data <- data.frame(Decennio=as.factor(unique(db$decade)),value=y)
+data$label <- scales::percent(data$value/sum(data$value))
+ggplot(data, aes(x="", y=value, fill=Decennio)) +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0)+
+  theme_void()
+```
+```{r}
+#Tabella a doppia entrata
+table=table(db$decade, db$popularity)
+#Indice di connessione delle contingenze
+chi=chisq.test(table) 
+chi
+```
+Viene rifiutata l'ipotesi di indipendenza fra le due variabili.
+```{r}
+#Boxplot condizionato
+ggplot(db, aes(x=db$decade, y=db$popularity, group=db$decade)) + 
+  geom_boxplot()+
+  xlab(label = "Decennio")+
+  ylab(label = "Popolarità")+
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 11))
+```
+```{r}
+#Test ANOVA per l'uguaglianza delle medie
+summary(aov(popularity ~ as.factor(decade), db))
+```
+
+
+###Analisi di "Explicit"
+```{r}
+print("Frequenze relative:")
+round(table(db$explicit)/length(db$explicit),4)
+```
+```{r}
+#Indice di Gini
+print("Indice di Gini normalizzato:")
+G_normalizzato(db$explicit)
+```
+L'eterogeneità del fenomeno è ovviamente molto bassa.
+```{r}
+#PieChart di "explicit"
+expl <- mapvalues(db$explicit,c(1,0),c("Sì","No"))
+y <- c()
+for(i in 1:length(unique(expl))) {y<-c(y,table(expl)[[i]])}
+data <- data.frame(Esplicito=as.factor(unique(expl)),value=y)
+data$label <- scales::percent(data$value/sum(data$value))
+ggplot(data, aes(x="", y=value, fill=Esplicito)) +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0)+
+  theme_void()
+```
+```{r}
+#Tabella a doppia entrata
+table=table(db$explicit, db$popularity)
+#Indice di connessione delle contingenze
+chi=chisq.test(table) 
+chi
+```
+Viene rifiutata l'ipotesi di indipendenza fra le due variabili.
+```{r}
+#Boxplot condizionato
+ggplot(db, aes(x=mapvalues(db$explicit,c(1,0),c("Sì","No")), y=db$popularity, group=mapvalues(db$explicit,c(1,0),c("Sì","No")))) + 
+  geom_boxplot()+
+  xlab(label = "Esplicito")+
+  ylab(label = "Popolarità")
+```
+```{r}
+#Test ANOVA per l'uguaglianza delle medie
+summary(aov(popularity ~ as.factor(explicit), db))
+```
+
+
+###Analisi di "Mode"
+```{r}
+print("Frequenze relative:")
+round(table(db$mode)/length(db$mode),4)
+```
+```{r}
+#Indice di Gini
+print("Indice di Gini normalizzato:")
+G_normalizzato(db$mode)
+```
+L'eterogeneità del fenomeno è abbastanza elevata.
+```{r}
+#PieChart di "mode"
+expl <- mapvalues(db$mode,c(1,0),c("Maggiore","Minore"))
+y <- c()
+for(i in 1:length(unique(expl))) {y<-c(y,table(expl)[[i]])}
+data <- data.frame(Modalità=as.factor(unique(expl)),value=y)
+data$label <- scales::percent(data$value/sum(data$value))
+ggplot(data, aes(x="", y=value, fill=Modalità)) +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0)+
+  theme_void()
+```
+```{r}
+#Tabella a doppia entrata
+table=table(db$mode, db$popularity)
+#Indice di connessione delle contingenze
+chi=chisq.test(table) 
+chi
+```
+Viene rifiutata l'ipotesi di indipendenza fra le due variabili.
+```{r}
+#Boxplot condizionato
+ggplot(db, aes(x=mapvalues(db$mode,c(1,0),c("Maggiore","Minore")), y=db$popularity, group=mapvalues(db$mode,c(1,0),c("Maggiore","Minore")))) +
+  geom_boxplot()+
+  xlab(label = "Modalità")+
+  ylab(label = "Popolarità")
+```
+```{r}
+#Test ANOVA per l'uguaglianza delle medie
+summary(aov(popularity ~ as.factor(mode), db))
+```
+
+###Analisi di "Key"
+```{r}
+#Tabella di frequenza
+print("Frequenze relative:")
+round(table(db$key)/length(db$key),4)
+#Moda
+print("Moda:")
+moda(db$key)
+```
+```{r}
+#Indice di Gini
+print("Indice di Gini normalizzato:")
+G_normalizzato(db$key)
+```
+Il fenomeno è estremamente eterogeneo.
+```{r}
+#PieChart di "key"
+expl <- mapvalues(db$key,c(0,1,2,3,4,5,6,7,8,9,10,11),c("Do","Do♯","Re","Re♯","Mi","Fa","Fa♯","Sol","Sol♯","La","La♯","Si"))
+y <- c()
+for(i in 1:length(unique(expl))) {y<-c(y,table(expl)[[i]])}
+data <- data.frame(Chiave=as.factor(unique(expl)),value=y)
+data$label <- scales::percent(data$value/sum(data$value))
+ggplot(data, aes(x="", y=value, fill=Chiave)) +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0)+
+  theme_void()
+```
+```{r}
+#Tabella a doppia entrata
+table=table(db$key, db$popularity)
+#Indice di connessione delle contingenze
+chi=chisq.test(table) 
+chi
+```
+Viene rifiutata l'ipotesi di indipendenza fra le due variabili.
+```{r}
+#Boxplot condizionato
+ggplot(db, aes(x=mapvalues(db$key,c(0,1,2,3,4,5,6,7,8,9,10,11),c("Do","Do♯","Re","Re♯","Mi","Fa","Fa♯","Sol","Sol♯","La","La♯","Si")), y=db$popularity, group=mapvalues(db$key,c(0,1,2,3,4,5,6,7,8,9,10,11),c("Do","Do♯","Re","Re♯","Mi","Fa","Fa♯","Sol","Sol♯","La","La♯","Si")))) +
+  geom_boxplot()+
+  xlab(label = "Chiave")+
+  ylab(label = "Popolarità")
+```
+```{r}
+#Test ANOVA per l'uguaglianza delle medie
+summary(aov(popularity ~ as.factor(key), db))
+```
+Infine, le variabili qualitative non binarie vengono convertite in "factor".
+```{r}
+for(col in c("decade","key")) {db[col]<-factor(db[col])}
+```
+
+##Analisi delle variabili quantitative
+
+###Analisi di "Acousticness"
+```{r}
+AnPrel(db$acousticness)
+```
+```{r}
+ggplot(db, aes(x=acousticness)) + geom_histogram(binwidth = 0.01, color= "red", fill="white")+geom_vline(aes(xintercept=mean(acousticness)),color="blue", linetype="dashed", size=0.4)+geom_vline(aes(xintercept=median(acousticness)),color="darkorange", linetype="dashed", size=0.4)+ylab(label="")+labs(title=paste("Distribuzione di frequenza di",deparse(substitute(acousticness))))
+#MANCA LA LEGENDA
+#IF TYPEOF DOUBLE SE NO STICK
+```
+
+
+
+Numeriche:
+5. Istogramma (o stick chart se discreto)
+
+- IC della proporzione (categoriche), della media/varianza (numeriche)
+- Correlazione fra di loro (test del rho)
+- VIF (<2)
+- Regressione (categoriche in dummy)
+
+"acousticness" (NUM)
+"danceability" (NUM)
+"duration_ms"  (NUM)   
+"energy" (NUM)
+"instrumentalness" (NUM)
+"liveness" (NUM)       
+"loudness" (NUM)      
+"popularity" (NUM)      
+"speechiness" (NUM)      
+"tempo" (NUM)            
+"valence" (NUM)
