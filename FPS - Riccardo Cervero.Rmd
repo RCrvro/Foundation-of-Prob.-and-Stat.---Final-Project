@@ -12,8 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 #Progetto di FP&S: Spotify Top Tracks Dataset
 ```{r}
 ##Caricamento pacchetti
-library(dplyr)
 library(plyr)
+library(dplyr)
 library(purrr)
 library(ggplot2)
 library(memisc)
@@ -47,36 +47,65 @@ m4 <- function(x){return(kurtosis(x,na.rm=T,method="moment",excess=F))}
 
 #Analisi preliminare di una qualsiasi variabile numerica
 AnPrel <- function(col) {
+  
   #Statistiche preliminari
   s<-summary(col)
   stat <- c()
   for(i in 1:6) {stat<-c(stat,s[[i]])}
   #Moda
   m<-moda(col)
-  stat<-c(stat,m)
   #Varianza
   v<-var(col)
-  stat<-c(stat,v)
   #Coefficiente di variazione
   ccv<-cv(col)
-  stat<-c(stat,ccv)
   #Asimmetria
   as<-m3(col)
-  stat<-c(stat,as)
   if_Z <- function(){if(as==0){return("simmetrica")}else if(as>0){return("asimmetrica positiva")}else if(as<0){return("asimmetrica negativa")}}
   #Curtosi
   cu<-m4(col)
-  stat<-c(stat,cu)
   if_C <- function(){if(cu==3){return("normale.")}else if(cu>3){return("leptocurtica.")}else if(cu<3){return("platicurtica.")}}
-  #Somiglianza con la Normale
-  qqnorm(col)
-  qqline(col)
   
+  stat<-c(stat,m,v,ccv,as,cu)
   indici <- c("Minimo","1o Qu.","Mediana","Media","3o Qu.","Massimo","Moda","Varianza","CdV","Asimmetria","Curtosi")
   stat <- data.frame(cbind(indici,stat))
   names(stat) <- c("Statistica","Valore")
+  
+  #Grafico della distribuzione
+  if((typeof(col)=="double")||(col=db$duration_ms)){
+    g<-ggplot(db, aes(x=col))+
+      geom_histogram(binwidth = 0.01, color= "red", fill="white")+
+      geom_vline(aes(xintercept=mean(col)),color="blue", linetype="dashed", size=0.5)+
+      geom_vline(aes(xintercept=median(col)),color="green", linetype="dashed", size=0.5)+
+      ylab(label="")+
+      xlab(label=substring(deparse(substitute(col)), 4))+
+      labs(title=paste("Distribuzione di frequenza di",substring(deparse(substitute(col)), 4)),caption="Le linee verticali tratteggiate corrispondono a media (in blue) e mediana (in verde).")
+           } else if(typeof(col)=="integer"){
+             g<-ggplot(db, aes(x=col))+
+               geom_bar(binwidth = 0.01, color= "red", fill="white")+
+               geom_vline(aes(xintercept=mean(col)),color="blue",linetype="dashed", size=0.5)+
+               geom_vline(aes(xintercept=median(col)),color="green", linetype="dashed", size=0.5)+
+               ylab(label="")+
+               xlab(label=substring(deparse(substitute(col)), 4))+
+               labs(title=paste("Distribuzione di frequenza di",substring(deparse(substitute(col)), 4)),caption="Le linee verticali tratteggiate corrispondono a media (in blue) e mediana (in verde).")
+           }
+  
   print(paste("La distribuzione è",if_Z(),"e",if_C()))
-  return(stat)
+  return(list("stat"=stat,
+              "distr"=g,
+              "qqnorm"=function(){
+    qqnorm(col)
+    qqline(col)
+  }))
+}
+
+
+#Funzione per inferenza della media di una v quantitativa
+ICmedia <- function(col,l=0.95){
+  n <- nrow(db)
+  mu <- mean(col)
+  sds <- sd(col)
+  E <- qnorm(l+(1-l)/2)*sds/sqrt(n)
+  return(c(mu-E, mu+E))
 }
 ```
 
@@ -87,7 +116,7 @@ db <- read.csv("/Users/riccardocervero/Desktop/DataScience/Materie/Foundation of
 ```
 ```{r}
 #Caricamento database ridotto
-db <- read.csv("/Users/riccardocervero/Desktop/SpotifyRidotto.csv")
+db <- read.csv("/Users/riccardocervero/Desktop/DataScience/Materie/Foundation of Prob & Stats/Progetto FPS - Riccardo Cervero/SpotifyRidotto.csv")
 db <- db[ , !(colnames(db) %in% c("X")), drop=FALSE]
 ```
 ```{r}
@@ -231,6 +260,20 @@ ggplot(data, aes(x="", y=value, fill=Esplicito)) +
   theme_void()
 ```
 ```{r}
+#Stima intervallare sulla proporzione di contenuto esplicito (con 𝛼=5%)
+p <- unlist(table(db$explicit)/length(db$explicit))[[2]] #Freq relativa di contenuto esplicito
+p0 <- unlist(table(db$explicit)/length(db$explicit))[[1]] #Freq relativa di contenuto non esplicito
+n <- nrow(db) #Dimensione del campione
+l <- 0.95   #Livello di confidenza
+c <- l+(1-l)/2  
+SE <- sqrt(p*(1-p)/n) #Deviazione standard di p 
+E  <- qnorm(c)*SE
+IC <- p+c(-E,E) #intervallo di confidenza per p (esplicito)
+IC0 <- p0+c(-E,E) #intervallo di confidenza per p (non esplicito)
+print(paste0("IC della proporzione di contenuto eplicito:  (",IC[1],", ",IC[2],")"))
+print(paste0("IC della proporzione di contenuto non eplicito:  (",IC0[1],", ",IC0[2],")"))
+```
+```{r}
 #Tabella a doppia entrata
 table=table(db$explicit, db$popularity)
 #Indice di connessione delle contingenze
@@ -249,7 +292,6 @@ ggplot(db, aes(x=mapvalues(db$explicit,c(1,0),c("Sì","No")), y=db$popularity, g
 #Test ANOVA per l'uguaglianza delle medie
 summary(aov(popularity ~ as.factor(explicit), db))
 ```
-
 
 ###Analisi di "Mode"
 ```{r}
@@ -273,6 +315,20 @@ ggplot(data, aes(x="", y=value, fill=Modalità)) +
   geom_bar(stat="identity", width=1) +
   coord_polar("y", start=0)+
   theme_void()
+```
+```{r}
+#Stima intervallare sulla proporzione della modalità (con 𝛼=5%)
+p <- unlist(table(db$mode)/length(db$mode))[[2]] #Freq relativa di tonalità "major"
+p0 <- unlist(table(db$mode)/length(db$mode))[[1]] #Freq relativa di tonalità "minor"
+n <- nrow(db) #Dimensione del campione
+l <- 0.95   #Livello di confidenza
+c <- l+(1-l)/2  
+SE <- sqrt(p*(1-p)/n) #Deviazione standard di p 
+E  <- qnorm(c)*SE
+IC <- p+c(-E,E) #intervallo di confidenza per p di "major"
+IC0 <- p0+c(-E,E) #intervallo di confidenza per p di "minor"
+print(paste0("IC della proporzione di tonalità maggiore:  (",IC[1],", ",IC[2],")"))
+print(paste0("IC della proporzione di tonalità minore:  (",IC0[1],", ",IC0[2],")"))
 ```
 ```{r}
 #Tabella a doppia entrata
@@ -322,6 +378,29 @@ ggplot(data, aes(x="", y=value, fill=Chiave)) +
   theme_void()
 ```
 ```{r}
+#Stima intervallare sulla proporzione di Do (con 𝛼=5%)
+p <- unlist(table(db$key)/length(db$key))[[1]] #Frequenza relativa di Do
+n <- nrow(db) #Dimensione del campione
+l <- 0.95   #Livello di confidenza
+c <- l+(1-l)/2  
+SE <- sqrt(p*(1-p)/n) #Deviazione standard di p 
+E  <- qnorm(c)*SE
+IC <- p+c(-E,E) #intervallo di confidenza per p di "major"
+print(paste0("IC della proporzione di tracce in Do:  (",IC[1],", ",IC[2],")"))
+```
+```{r}
+#Do può essere stimata, con confidenza al 95%, come chiave più frequente?
+ICp <- function(k){
+  p <- unlist(table(db$key)/length(db$key))[[k]]
+  n <- nrow(db)
+  SE <- sqrt(p*(1-p)/n)
+  E  <- qnorm(0.975)*SE
+  IC <- p+c(-E,E)
+  if(IC[2]>=0.124951684177052){print(paste0(k-1,": TRUE"))}else{print(paste0(k-1,": IC minore rispetto alla classe 'Do'"))}
+}
+for(k in 2:12){ICp(k)}
+```
+```{r}
 #Tabella a doppia entrata
 table=table(db$key, db$popularity)
 #Indice di connessione delle contingenze
@@ -340,6 +419,7 @@ ggplot(db, aes(x=mapvalues(db$key,c(0,1,2,3,4,5,6,7,8,9,10,11),c("Do","Do♯","R
 #Test ANOVA per l'uguaglianza delle medie
 summary(aov(popularity ~ as.factor(key), db))
 ```
+\
 Infine, le variabili qualitative non binarie vengono convertite in "factor".
 ```{r}
 for(col in c("decade","key")) {db[col]<-factor(db[col])}
@@ -349,32 +429,264 @@ for(col in c("decade","key")) {db[col]<-factor(db[col])}
 
 ###Analisi di "Acousticness"
 ```{r}
-AnPrel(db$acousticness)
+acoustic <- AnPrel(db$acousticness)
 ```
 ```{r}
-ggplot(db, aes(x=acousticness)) + geom_histogram(binwidth = 0.01, color= "red", fill="white")+geom_vline(aes(xintercept=mean(acousticness)),color="blue", linetype="dashed", size=0.4)+geom_vline(aes(xintercept=median(acousticness)),color="darkorange", linetype="dashed", size=0.4)+ylab(label="")+labs(title=paste("Distribuzione di frequenza di",deparse(substitute(acousticness))))
-#MANCA LA LEGENDA
-#IF TYPEOF DOUBLE SE NO STICK
+#Statistiche di base
+acoustic$stat
+```
+```{r}
+#Distribuzione
+acoustic$distr
+```
+```{r}
+#Normalità
+acoustic$qqnorm()
+```
+```{r}
+#Stima intervallare dell'acusticità media dal 1921 ad oggi (al 95%)
+ICmedia(db$acousticness)
+```
+I dati si riferiscono pertanto a tracce con una probabilità media di essere completamente acustiche - stimata con confidenza al 95% - inferiore rispetto alla probabilità media di includere strumenti elettronici, poichè l'intervallo di confidenza di "acousticness" ha estremo superiore inferiore a 0.5.
+
+###Analisi di "Danceability"
+```{r}
+dance <- AnPrel(db$danceability)
+```
+```{r}
+#Statistiche di base
+dance$stat
+```
+```{r}
+#Distribuzione
+dance$distr
+```
+```{r}
+#Normalità
+dance$qqnorm()
+```
+```{r}
+#Stima intervallare della ballabilità media dal 1921 ad oggi (al 95%)
+ICmedia(db$danceability)
+```
+
+###Analisi di "Duration_ms"
+```{r}
+duration <- AnPrel(db$duration_ms)
+```
+```{r}
+#Statistiche di base
+duration$stat
+```
+```{r,include=FALSE,eval=FALSE}
+#Distribuzione
+duration$distr
+```
+```{r,include=FALSE,eval=FALSE}
+#Normalità
+duration$qqnorm()
+```
+```{r}
+#Stima intervallare della durata media dal 1921 ad oggi (al 95%)
+ICmedia(db$duration_ms)
+```
+La stima - con livello di confidenza al 95% - della durata media dei brani è compresa fra circa 3 minuti e 51 secondi e 3 minuti e 52 secondi.
+
+###Analisi di "Energy"
+```{r}
+ener <- AnPrel(db$energy)
+```
+```{r}
+#Statistiche di base
+ener$stat
+```
+```{r}
+#Distribuzione
+ener$distr
+```
+```{r}
+#Normalità
+ener$qqnorm()
+```
+```{r}
+#Stima intervallare dell'energia media dal 1921 ad oggi (al 95%)
+ICmedia(db$energy)
+```
+
+###Analisi di "Instrumentalness"
+```{r}
+instrumental <- AnPrel(db$instrumentalness)
+```
+```{r}
+#Statistiche di base
+instrumental$stat
+```
+```{r}
+#Distribuzione
+instrumental$distr
+```
+```{r}
+#Normalità
+instrumental$qqnorm()
+```
+```{r}
+#Stima intervallare di "strumentalità" media dal 1921 ad oggi (al 95%)
+ICmedia(db$instrumentalness)
+```
+La quantità media di contenuto esclusivamente strumentale all'interno delle tracce, con un livello di confidenza del 95%, viene pertanto stimata scarsa, al massimo pari a circa il 16.3%.
+
+###Analisi di "Liveness"
+```{r}
+live <- AnPrel(db$liveness)
+```
+```{r}
+#Statistiche di base
+live$stat
+```
+```{r}
+#Distribuzione
+live$distr
+```
+```{r}
+#Normalità
+live$qqnorm()
+```
+```{r}
+#Stima intervallare della presenza media di pubblico nella registrazione (al 95%)
+ICmedia(db$liveness)
+```
+La stima della probabilità media di presenza di un'audience durante la registrazione del brano è, con confidenza al 95%, compresa fra circa il 20.6% e 20.8%.
+
+###Analisi di "Loudness"
+```{r}
+loud <- AnPrel(db$loudness)
+```
+```{r}
+#Statistiche di base
+loud$stat
+```
+```{r}
+#Distribuzione
+loud$distr
+```
+```{r}
+#Normalità
+loud$qqnorm()
+```
+```{r}
+#Stima intervallare del volume complessivo medio dal 1921 ad oggi (al 95%)
+ICmedia(db$loudness)
+```
+Il volume complessivo medio viene stimato, con alfa a 0.05, tra circa i -11.4 decibel e -11.3 decibel
+
+###Analisi di "Speechiness"
+```{r}
+speech <- AnPrel(db$speechiness)
+```
+```{r}
+#Statistiche di base
+speech$stat
+```
+```{r}
+#Distribuzione
+speech$distr
+```
+```{r}
+#Normalità
+speech$qqnorm()
+```
+```{r}
+#Stima intervallare del volume complessivo medio dal 1921 ad oggi (al 95%)
+ICmedia(db$speechiness)
+```
+La probabilità media di rilevare del parlato all'interno delle canzoni è, comprensibilmente, molto bassa, stimata con un livello di confidenza del 95% tra circa il 9.3% e il 9.5%.
+
+###Analisi di "Tempo"
+```{r}
+t<- AnPrel(db$tempo)
+```
+```{r}
+#Statistiche di base
+t$stat
+```
+```{r}
+#Distribuzione
+t$distr
+```
+```{r}
+#Normalità
+t$qqnorm()
+```
+```{r}
+#Stima intervallare dei bpm medi dal 1921 ad oggi (al 95%)
+ICmedia(db$tempo)
+```
+
+###Analisi di "Valence"
+```{r}
+val<- AnPrel(db$valence)
+```
+```{r}
+#Statistiche di base
+val$stat
+```
+```{r}
+#Distribuzione
+val$distr
+```
+```{r}
+#Normalità
+val$qqnorm()
+```
+```{r}
+#Stima intervallare della positività media trasmessa (al 95%)
+ICmedia(db$valence)
+```
+\
+Supponendo indipendenti le decadi, è possibile rintracciare una connessione fra il decennio in cui la traccia è stata pubblicata e il livello emotivo trasmesso?
+```{r}
+#Tabella a doppia entrata
+table=table(db$decade, db$valence)
+#Indice di connessione delle contingenze
+chi=chisq.test(table) 
+chi
+```
+Viene rifiutata l'ipotesi di indipendenza fra le due variabili.
+```{r}
+#Boxplot condizionato
+ggplot(db, aes(x=decade, y=valence, group=decade)) +
+  geom_boxplot()+
+  xlab(label = "Decennio")+
+  ylab(label = "Positività")+
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 11))
+```
+```{r}
+#Test ANOVA per l'uguaglianza delle medie
+summary(aov(valence ~ as.factor(decade), db))
+```
+
+###Analisi di "Popularity"
+```{r}
+pop<- AnPrel(db$popularity)
+```
+```{r}
+#Statistiche di base
+pop$stat
+```
+```{r}
+#Distribuzione
+pop$distr
+```
+```{r}
+#Normalità
+pop$qqnorm()
 ```
 
 
-
-Numeriche:
-5. Istogramma (o stick chart se discreto)
-
-- IC della proporzione (categoriche), della media/varianza (numeriche)
+- Nuova var?
 - Correlazione fra di loro (test del rho)
 - VIF (<2)
 - Regressione (categoriche in dummy)
 
-"acousticness" (NUM)
-"danceability" (NUM)
-"duration_ms"  (NUM)   
-"energy" (NUM)
-"instrumentalness" (NUM)
-"liveness" (NUM)       
-"loudness" (NUM)      
-"popularity" (NUM)      
-"speechiness" (NUM)      
-"tempo" (NUM)            
-"valence" (NUM)
+      
+
