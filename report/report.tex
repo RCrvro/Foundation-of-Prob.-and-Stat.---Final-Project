@@ -1,0 +1,136 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Stylish Article
+% LaTeX Template
+% Version 2.1 (1/10/15)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Mathias Legrand (legrand.mathias@gmail.com) 
+% With extensive modifications by:
+% Vel (vel@latextemplates.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[fleqn,10pt]{SelfArx} % Document font size and equations flushed left
+
+\usepackage[italian]{babel} % Specify a different language here - english by default
+
+\usepackage{float}
+%----------------------------------------------------------------------------------------
+%	COLUMNS
+%----------------------------------------------------------------------------------------
+
+\setlength{\columnsep}{0.55cm} % Distance between the two columns of text
+\setlength{\fboxrule}{0.75pt} % Width of the border around the abstract
+
+%----------------------------------------------------------------------------------------
+%	COLORS
+%----------------------------------------------------------------------------------------
+
+\definecolor{color1}{RGB}{0,0,90} % Color of the article title and sections
+\definecolor{color2}{RGB}{0,20,20} % Color of the boxes behind the abstract and headings
+
+%----------------------------------------------------------------------------------------
+%	HYPERLINKS
+%----------------------------------------------------------------------------------------
+
+\usepackage{hyperref} % Required for hyperlinks
+\hypersetup{hidelinks,colorlinks,breaklinks=true,urlcolor=color2,citecolor=color1,linkcolor=color1,bookmarksopen=false,pdftitle={Title},pdfauthor={Author}}
+
+%----------------------------------------------------------------------------------------
+%	ARTICLE INFORMATION
+%----------------------------------------------------------------------------------------
+
+\JournalInfo{Progetto di \textit{Foundation of Probability and Statistics}, Università degli Studi di Milano Bicocca} % Journal information
+\Archive{Anno Accademico 2019-20} % Additional notes (e.g. copyright, DOI, review/research article)
+
+\PaperTitle{Spotify Dataset - Analisi delle tracce musicali e previsione della popolarità} % Article title
+
+\Authors{Riccardo Cervero\textsuperscript{1}} % Authors
+\affiliation{\textsuperscript{1}\textit{794126, Dipartimento di Informatica, Sistemistica e Comunicazione}} % Author affiliation
+
+\Keywords{Inferenza - Previsione} 
+\newcommand{\keywordname}{Keywords} 
+
+%----------------------------------------------------------------------------------------
+%	ABSTRACT
+%----------------------------------------------------------------------------------------
+
+\Abstract{} 
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+\flushbottom % Makes all text pages the same height
+
+\maketitle % Print the title and abstract box
+
+\tableofcontents % Print the contents section
+
+\thispagestyle{empty} % Removes page numbering from the first page
+
+%----------------------------------------------------------------------------------------
+%	ARTICLE CONTENTS
+%----------------------------------------------------------------------------------------
+
+\section{Caso di studio}
+\subsection{Pre-processing}
+%------------------------------------------------
+\section{Caratteri qualitativi}
+\subsection*{Variabile \textit{Year}}
+\subsection*{Variabile \textit{Explicit}}
+\subsection*{Variabile \textit{Mode}}
+\subsection*{Variabile \textit{Key}}
+%------------------------------------------------
+\section{Caratteri quantitativi}
+\subsection*{Variabile \textit{Acousticness}}
+\subsection*{Variabile \textit{Danceability}}
+\subsection*{Variabile \textit{Duration}}
+\subsection*{Variabile \textit{Energy}}
+\subsection*{Variabile \textit{Instrumentalness}}
+\subsection*{Variabile \textit{Liveness}}
+\subsection*{Variabile \textit{Loudness}}
+\subsection*{Variabile \textit{Speechiness}}
+\subsection*{Variabile \textit{Tempo}}
+\subsection*{Variabile \textit{Valence}}
+\subsection*{Variabile \textit{Popularity}}
+\subsection{Correlazioni lineari}
+%------------------------------------------------
+\section{Regressione semplice}
+
+%------------------------------------------------
+\section{Regressione multipla}
+\subsection{Previsione di \textit{Popularity}}
+\subsection{Previsione di \textit{Valence}}
+%------------------------------------------------
+\section{Conclusioni}
+
+%------------------------------------------------
+\section*{Codice}
+L'intero codice, implementato con linguaggio \texttt{R}, è disponibile al link: \href{https://github.com/RCrvro/Foundation-of-Prob.-and-Stat.---Final-Project/blob/master/codice.R}{\texttt{github.com/RCrvro/codice.R}}.
+%----------------------------------------------------------------------------------------
+%	REFERENCE LIST
+%----------------------------------------------------------------------------------------
+
+\clearpage
+
+\phantomsection
+\bibliographystyle{unsrt}
+\begin{thebibliography}{9}
+
+
+\end{thebibliography}
+%----------------------------------------------------------------------------------------
+
+\end{document}
+
