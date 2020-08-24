@@ -73,7 +73,8 @@ AnPrel <- function(col) {
       geom_vline(aes(xintercept=median(col)),color="green", linetype="dashed", size=0.5)+
       ylab(label="")+
       xlab(label=substring(deparse(substitute(col)), 4))+
-      labs(title=paste("Distribuzione di frequenza di",substring(deparse(substitute(col)), 4)),caption="Le linee verticali tratteggiate corrispondono a media (in blue) e mediana (in verde).")
+      labs(title=paste("Distribuzione di frequenza di",substring(deparse(substitute(col)), 4)),caption=
+           "Le linee verticali tratteggiate corrispondono a media (in blue) e mediana (in verde).")
            } else if(typeof(col)=="integer"){
              g<-ggplot(db, aes(x=col))+
                geom_bar(binwidth = 0.01, color= "red", fill="white")+
@@ -81,7 +82,8 @@ AnPrel <- function(col) {
                geom_vline(aes(xintercept=median(col)),color="green", linetype="dashed", size=0.5)+
                ylab(label="")+
                xlab(label=substring(deparse(substitute(col)), 4))+
-               labs(title=paste("Distribuzione di frequenza di",substring(deparse(substitute(col)), 4)),caption="Le linee verticali tratteggiate corrispondono a media (in blue) e mediana (in verde).")
+               labs(title=paste("Distribuzione di frequenza di",substring(deparse(substitute(col)), 4)),caption=
+                    "Le linee verticali tratteggiate corrispondono a media (in blue) e mediana (in verde).")
            }
   
   print(paste("La distribuzione è",if_Z(),"e",if_C()))
@@ -206,18 +208,16 @@ summary(aov(popularity ~ as.factor(decade), db))
 
 # # # # # # # # # # # # # # # # # # # # # #
 
-###ANALISI DI "Explicit"
-```{r}
+#ANALISI DI "Explicit"
+
+#Tabella di frequenza
 print("Frequenze relative:")
 round(table(db$explicit)/length(db$explicit),4)
-```
-```{r}
+
 #Indice di Gini
 print("Indice di Gini normalizzato:")
 G_normalizzato(db$explicit)
-```
-L'eterogeneità del fenomeno è ovviamente molto bassa.
-```{r}
+
 #PieChart di "explicit"
 expl <- mapvalues(db$explicit,c(1,0),c("Sì","No"))
 y <- c()
@@ -228,8 +228,7 @@ ggplot(data, aes(x="", y=value, fill=Esplicito)) +
   geom_bar(stat="identity", width=1) +
   coord_polar("y", start=0)+
   theme_void()
-```
-```{r}
+
 #Stima intervallare sulla proporzione di contenuto esplicito (con 𝛼=5%)
 p <- unlist(table(db$explicit)/length(db$explicit))[[2]] #Freq relativa di contenuto esplicito
 p0 <- unlist(table(db$explicit)/length(db$explicit))[[1]] #Freq relativa di contenuto non esplicito
@@ -242,39 +241,33 @@ IC <- p+c(-E,E) #intervallo di confidenza per p (esplicito)
 IC0 <- p0+c(-E,E) #intervallo di confidenza per p (non esplicito)
 print(paste0("IC della proporzione di contenuto eplicito:  (",IC[1],", ",IC[2],")"))
 print(paste0("IC della proporzione di contenuto non eplicito:  (",IC0[1],", ",IC0[2],")"))
-```
-```{r}
-#Tabella a doppia entrata
+
+#Test del Chi Quadro di connessione fra popolarità e presenza di contenuto esplicito
 table=table(db$explicit, db$popularity)
-#Indice di connessione delle contingenze
 chi=chisq.test(table) 
 chi
-```
-Viene rifiutata l'ipotesi di indipendenza fra le due variabili.
-```{r}
+
 #Boxplot condizionato
 ggplot(db, aes(x=mapvalues(db$explicit,c(1,0),c("Sì","No")), y=db$popularity, group=mapvalues(db$explicit,c(1,0),c("Sì","No")))) + 
   geom_boxplot()+
   xlab(label = "Esplicito")+
   ylab(label = "Popolarità")
-```
-```{r}
+
 #Test ANOVA per l'uguaglianza delle medie
 summary(aov(popularity ~ as.factor(explicit), db))
-```
 
-###Analisi di "Mode"
-```{r}
+# # # # # # # # # # # # # # # # # # # # # #
+
+#ANALISI DI "Mode"
+
+#Tabella di frequenza
 print("Frequenze relative:")
 round(table(db$mode)/length(db$mode),4)
-```
-```{r}
+
 #Indice di Gini
 print("Indice di Gini normalizzato:")
 G_normalizzato(db$mode)
-```
-L'eterogeneità del fenomeno è abbastanza elevata.
-```{r}
+
 #PieChart di "mode"
 expl <- mapvalues(db$mode,c(1,0),c("Maggiore","Minore"))
 y <- c()
@@ -285,8 +278,7 @@ ggplot(data, aes(x="", y=value, fill=Modalità)) +
   geom_bar(stat="identity", width=1) +
   coord_polar("y", start=0)+
   theme_void()
-```
-```{r}
+
 #Stima intervallare sulla proporzione della modalità (con 𝛼=5%)
 p <- unlist(table(db$mode)/length(db$mode))[[2]] #Freq relativa di tonalità "major"
 p0 <- unlist(table(db$mode)/length(db$mode))[[1]] #Freq relativa di tonalità "minor"
@@ -299,43 +291,37 @@ IC <- p+c(-E,E) #intervallo di confidenza per p di "major"
 IC0 <- p0+c(-E,E) #intervallo di confidenza per p di "minor"
 print(paste0("IC della proporzione di tonalità maggiore:  (",IC[1],", ",IC[2],")"))
 print(paste0("IC della proporzione di tonalità minore:  (",IC0[1],", ",IC0[2],")"))
-```
-```{r}
-#Tabella a doppia entrata
+
+#Test del Chi Quadro di connessione fra popolarità e tonalità
 table=table(db$mode, db$popularity)
-#Indice di connessione delle contingenze
 chi=chisq.test(table) 
 chi
-```
-Viene rifiutata l'ipotesi di indipendenza fra le due variabili.
-```{r}
+
 #Boxplot condizionato
 ggplot(db, aes(x=mapvalues(db$mode,c(1,0),c("Maggiore","Minore")), y=db$popularity, group=mapvalues(db$mode,c(1,0),c("Maggiore","Minore")))) +
   geom_boxplot()+
   xlab(label = "Modalità")+
   ylab(label = "Popolarità")
-```
-```{r}
+
 #Test ANOVA per l'uguaglianza delle medie
 summary(aov(popularity ~ as.factor(mode), db))
-```
 
-###Analisi di "Key"
-```{r}
+# # # # # # # # # # # # # # # # # # # # # #
+
+#ANALISI DI "Key"
+
 #Tabella di frequenza
 print("Frequenze relative:")
 round(table(db$key)/length(db$key),4)
+
 #Moda
 print("Moda:")
 moda(db$key)
-```
-```{r}
+
 #Indice di Gini
 print("Indice di Gini normalizzato:")
 G_normalizzato(db$key)
-```
-Il fenomeno è estremamente eterogeneo.
-```{r}
+
 #PieChart di "key"
 expl <- mapvalues(db$key,c(0,1,2,3,4,5,6,7,8,9,10,11),c("Do","Do♯","Re","Re♯","Mi","Fa","Fa♯","Sol","Sol♯","La","La♯","Si"))
 y <- c()
@@ -346,8 +332,7 @@ ggplot(data, aes(x="", y=value, fill=Chiave)) +
   geom_bar(stat="identity", width=1) +
   coord_polar("y", start=0)+
   theme_void()
-```
-```{r}
+
 #Stima intervallare sulla proporzione di Do (con 𝛼=5%)
 p <- unlist(table(db$key)/length(db$key))[[1]] #Frequenza relativa di Do
 n <- nrow(db) #Dimensione del campione
@@ -357,8 +342,7 @@ SE <- sqrt(p*(1-p)/n) #Deviazione standard di p
 E  <- qnorm(c)*SE
 IC <- p+c(-E,E) #intervallo di confidenza per p di "major"
 print(paste0("IC della proporzione di tracce in Do:  (",IC[1],", ",IC[2],")"))
-```
-```{r}
+
 #Do può essere stimata, con confidenza al 95%, come chiave più frequente?
 ICp <- function(k){
   p <- unlist(table(db$key)/length(db$key))[[k]]
@@ -368,311 +352,273 @@ ICp <- function(k){
   IC <- p+c(-E,E)
   if(IC[2]>=0.124951684177052){print(paste0(k-1,": TRUE"))}else{print(paste0(k-1,": IC minore rispetto alla classe 'Do'"))}
 }
-for(k in 2:12){ICp(k)}
-```
-```{r}
-#Tabella a doppia entrata
+for(k in 2:12){ICp(k)} 
+#Calcolati gli IC delle p di ogni chiave, si verifica se almeno un estremo superiore è pari o maggiore all'estremo inferiore dell'IC della p della chiave Do
+
+#Test del Chi Quadro di connessione fra popolarità e chiave
 table=table(db$key, db$popularity)
-#Indice di connessione delle contingenze
 chi=chisq.test(table) 
 chi
-```
-Viene rifiutata l'ipotesi di indipendenza fra le due variabili.
-```{r}
+
 #Boxplot condizionato
-ggplot(db, aes(x=mapvalues(db$key,c(0,1,2,3,4,5,6,7,8,9,10,11),c("Do","Do♯","Re","Re♯","Mi","Fa","Fa♯","Sol","Sol♯","La","La♯","Si")), y=db$popularity, group=mapvalues(db$key,c(0,1,2,3,4,5,6,7,8,9,10,11),c("Do","Do♯","Re","Re♯","Mi","Fa","Fa♯","Sol","Sol♯","La","La♯","Si")))) +
+ggplot(db, aes(x=mapvalues(db$key,c(0,1,2,3,4,5,6,7,8,9,10,11),c("Do","Do♯","Re","Re♯","Mi","Fa","Fa♯","Sol","Sol♯","La","La♯","Si")),
+               y=db$popularity, group=mapvalues(db$key,c(0,1,2,3,4,5,6,7,8,9,10,11),c("Do","Do♯","Re","Re♯","Mi","Fa","Fa♯","Sol","Sol♯","La","La♯","Si")))) +
   geom_boxplot()+
   xlab(label = "Chiave")+
   ylab(label = "Popolarità")
-```
-```{r}
+
 #Test ANOVA per l'uguaglianza delle medie
 summary(aov(popularity ~ as.factor(key), db))
-```
 
-##Analisi delle variabili quantitative
+###############################################################################
+  
+##ANALISI DELLE VARIABILI QUANTITATIVE##
 
-###Analisi di "Acousticness"
-```{r}
+#ANALISI DI "Acousticness"
+
 acoustic <- AnPrel(db$acousticness)
-```
-```{r}
+
 #Statistiche di base
 acoustic$stat
-```
-```{r}
+
 #Distribuzione
 acoustic$distr
-```
-```{r}
+
 #Normalità
 acoustic$qqnorm()
-```
-```{r}
+
 #Stima intervallare dell'acusticità media dal 1921 ad oggi (al 95%)
 ICmedia(db$acousticness)
-```
-I dati si riferiscono pertanto a tracce con una probabilità media di essere completamente acustiche - stimata con confidenza al 95% - inferiore rispetto alla probabilità media di includere strumenti elettronici, poichè l'intervallo di confidenza di "acousticness" ha estremo superiore inferiore a 0.5.
 
-###Analisi di "Danceability"
-```{r}
+#I dati si riferiscono pertanto a tracce con una probabilità media di essere completamente acustiche - stimata con confidenza al 95% -
+#inferiore rispetto alla probabilità media di includere strumenti elettronici, poichè l'intervallo di confidenza di "acousticness" ha estremo superiore inferiore a 0.5.
+
+# # # # # # # # # # # # # # # # # # # # # #
+  
+#ANALISI DI "Danceability"
+
 dance <- AnPrel(db$danceability)
-```
-```{r}
+
 #Statistiche di base
 dance$stat
-```
-```{r}
+
 #Distribuzione
 dance$distr
-```
-```{r}
+
 #Normalità
 dance$qqnorm()
-```
-```{r}
+
 #Stima intervallare della ballabilità media dal 1921 ad oggi (al 95%)
 ICmedia(db$danceability)
-```
 
-###Analisi di "Duration_ms"
-```{r}
+# # # # # # # # # # # # # # # # # # # # # #
+
+#ANALISI DI "Duration_ms"
+
 duration <- AnPrel(db$duration_ms)
-```
-```{r}
+
 #Statistiche di base
 duration$stat
-```
-```{r,include=FALSE,eval=FALSE}
+
 #Distribuzione
 duration$distr
-```
-```{r,include=FALSE,eval=FALSE}
+
 #Normalità
 duration$qqnorm()
-```
-```{r}
+
 #Stima intervallare della durata media dal 1921 ad oggi (al 95%)
 ICmedia(db$duration_ms)
-```
-La stima - con livello di confidenza al 95% - della durata media dei brani è compresa fra circa 3 minuti e 51 secondi e 3 minuti e 52 secondi.
 
-###Analisi di "Energy"
-```{r}
+#La stima - con livello di confidenza al 95% - della durata media dei brani è compresa fra circa 3 minuti e 51 secondi e 3 minuti e 52 secondi.
+
+# # # # # # # # # # # # # # # # # # # # # #
+  
+#ANALISI DI "Energy"
+
 ener <- AnPrel(db$energy)
-```
-```{r}
+
 #Statistiche di base
 ener$stat
-```
-```{r}
+
 #Distribuzione
 ener$distr
-```
-```{r}
+
 #Normalità
 ener$qqnorm()
-```
-```{r}
+
 #Stima intervallare dell'energia media dal 1921 ad oggi (al 95%)
 ICmedia(db$energy)
-```
 
-###Analisi di "Instrumentalness"
-```{r}
+# # # # # # # # # # # # # # # # # # # # # #
+
+#ANALISI DI "Instrumentalness"
+
 instrumental <- AnPrel(db$instrumentalness)
-```
-```{r}
+
 #Statistiche di base
 instrumental$stat
-```
-```{r}
+
 #Distribuzione
 instrumental$distr
-```
-```{r}
+
 #Normalità
 instrumental$qqnorm()
-```
-```{r}
+
 #Stima intervallare di "strumentalità" media dal 1921 ad oggi (al 95%)
 ICmedia(db$instrumentalness)
-```
-La quantità media di contenuto esclusivamente strumentale all'interno delle tracce, con un livello di confidenza del 95%, viene pertanto stimata scarsa, al massimo pari a circa il 16.3%.
 
-###Analisi di "Liveness"
-```{r}
+#La quantità media di contenuto esclusivamente strumentale all'interno delle tracce, con un livello di confidenza del 95%, viene pertanto stimata scarsa,
+#al massimo pari a circa il 16.3%.
+
+# # # # # # # # # # # # # # # # # # # # # #
+  
+#ANALISI DI "Liveness"
+
 live <- AnPrel(db$liveness)
-```
-```{r}
+
 #Statistiche di base
 live$stat
-```
-```{r}
+
 #Distribuzione
 live$distr
-```
-```{r}
+
 #Normalità
 live$qqnorm()
-```
-```{r}
+
 #Stima intervallare della presenza media di pubblico nella registrazione (al 95%)
 ICmedia(db$liveness)
-```
-La stima della probabilità media di presenza di un'audience durante la registrazione del brano è, con confidenza al 95%, compresa fra circa il 20.6% e 20.8%.
 
-###Analisi di "Loudness"
-```{r}
+#La stima della probabilità media di presenza di un'audience durante la registrazione del brano è, con confidenza al 95%, compresa fra circa il 20.6% e 20.8%.
+
+# # # # # # # # # # # # # # # # # # # # # #
+  
+#ANALISI DI "Loudness"
+
 loud <- AnPrel(db$loudness)
-```
-```{r}
+
 #Statistiche di base
 loud$stat
-```
-```{r}
+
 #Distribuzione
 loud$distr
-```
-```{r}
+
 #Normalità
 loud$qqnorm()
-```
-```{r}
+
 #Stima intervallare del volume complessivo medio dal 1921 ad oggi (al 95%)
 ICmedia(db$loudness)
-```
-Il volume complessivo medio viene stimato, con alfa a 0.05, tra circa i -11.4 decibel e -11.3 decibel
 
-###Analisi di "Speechiness"
-```{r}
+#Il volume complessivo medio viene stimato, con alfa a 0.05, tra circa i -11.4 decibel e -11.3 decibel
+
+# # # # # # # # # # # # # # # # # # # # # #
+  
+#ANALISI DI "Speechiness"
+
 speech <- AnPrel(db$speechiness)
-```
-```{r}
+
 #Statistiche di base
 speech$stat
-```
-```{r}
+
 #Distribuzione
 speech$distr
-```
-```{r}
+
 #Normalità
 speech$qqnorm()
-```
-```{r}
+
 #Stima intervallare del volume complessivo medio dal 1921 ad oggi (al 95%)
 ICmedia(db$speechiness)
-```
-La probabilità media di rilevare del parlato all'interno delle canzoni è, comprensibilmente, molto bassa, stimata con un livello di confidenza del 95% tra circa il 9.3% e il 9.5%.
 
-###Analisi di "Tempo"
-```{r}
+#La probabilità media di rilevare del parlato all'interno delle canzoni è molto bassa, stimata con un livello di confidenza del 95% tra circa il 9.3% e il 9.5%.
+
+# # # # # # # # # # # # # # # # # # # # # #  
+  
+#ANALISI DI "Tempo"
+
 t<- AnPrel(db$tempo)
-```
-```{r}
+
 #Statistiche di base
 t$stat
-```
-```{r}
+
 #Distribuzione
 t$distr
-```
-```{r}
+
 #Normalità
 t$qqnorm()
-```
-```{r}
+
 #Stima intervallare dei bpm medi dal 1921 ad oggi (al 95%)
 ICmedia(db$tempo)
-```
 
-###Analisi di "Valence"
-```{r}
+# # # # # # # # # # # # # # # # # # # # # #  
+
+#ANALISI DI "Valence"
+
 val<- AnPrel(db$valence)
-```
-```{r}
+
 #Statistiche di base
 val$stat
-```
-```{r}
+
 #Distribuzione
 val$distr
-```
-```{r}
+
 #Normalità
 val$qqnorm()
-```
-```{r}
+
 #Stima intervallare della positività media trasmessa (al 95%)
 ICmedia(db$valence)
-```
-\
-Supponendo indipendenti le decadi, è possibile rintracciare una connessione fra il decennio in cui la traccia è stata pubblicata e il livello emotivo trasmesso?
-```{r}
-#Tabella a doppia entrata
+
+#Supponendo indipendenti le decadi, è possibile rintracciare una connessione fra il decennio in cui la traccia è stata pubblicata e il livello emotivo trasmesso?
+#Test del Chi quadro di connessione fra positività e decennio
 table=table(db$decade, db$valence)
-#Indice di connessione delle contingenze
 chi=chisq.test(table) 
 chi
-```
-Viene rifiutata l'ipotesi di indipendenza fra le due variabili.
-```{r}
+
 #Boxplot condizionato
 ggplot(db, aes(x=decade, y=valence, group=decade)) +
   geom_boxplot()+
   xlab(label = "Decennio")+
   ylab(label = "Positività")+
   scale_x_continuous(breaks = scales::pretty_breaks(n = 11))
-```
-```{r}
+
 #Test ANOVA per l'uguaglianza delle medie
 summary(aov(valence ~ as.factor(decade), db))
-```
-\
-È poi possibile che la positività trasmessa possa dipendere statisticamente dalla tonalità?
-```{r}
-#Test chi quadro
+
+#È poi possibile che la positività trasmessa possa dipendere statisticamente dalla tonalità?
+#Test del Chi quadro di connessione fra positività e tonalità
 chisq.test(table(db$mode, db$valence)) 
-```
-Viene rifiutata l'ipotesi di indipendenza fra le due variabili.
-```{r}
+
 #Test ANOVA per l'uguaglianza delle medie
 summary(aov(valence ~ as.factor(mode), db))
-```
-\
-Si poi valuta una connessione fra chiave globale della traccia e livello di positività:
-```{r}
-#Test chi quadro
+
+#Si poi valuta una connessione fra chiave globale della traccia e livello di positività:
+#Test del Chi quadro di connessione fra positività e chiave
 chisq.test(table(db$key, db$valence)) 
-```
-Viene rifiutata l'ipotesi di indipendenza fra le due variabili.
-```{r}
+
 #Test ANOVA per l'uguaglianza delle medie
 summary(aov(valence ~ as.factor(key), db))
-```
 
-###Analisi di "Popularity"
-```{r}
+# # # # # # # # # # # # # # # # # # # # # #   
+
+#ANALISI DI "Popularity"
+
 pop<- AnPrel(db$popularity)
-```
-```{r}
+
 #Statistiche di base
 pop$stat
-```
-```{r}
+
 #Distribuzione
 pop$distr
-```
-```{r}
+
 #Normalità
 pop$qqnorm()
-```
 
-##Correlazioni lineari
-Verranno stimati i coefficienti di correlazione di Pearson per tutte le possibili coppie di variabili quantitative e verrà effettuato il corrispettivo test con livello di confidenza fissato al 95% per valutare la significatività statistica delle correlazioni più interessanti.
-```{r}
-#Matrice di correlazione
+###############################################################################
+  
+##CORRELAZIONI LINEARI##
+
+#Sono stimati i coefficienti di correlazione di Pearson per tutte le possibili coppie di variabili quantitative ed effettuati i corrispettivi test
+#con livello di confidenza fissato al 95% per valutare la significatività statistica delle correlazioni più interessanti.
+
+#MATRICE DI CORRELAZIONE
 db_num <- db[ , !(colnames(db) %in% c("key","mode","explicit","decade")), drop=FALSE]
 cormat <- round(cor(db_num),2)
 melted_cormat <- melt(cormat)
@@ -688,7 +634,8 @@ get_upper_tri <- function(cormat){
 cormat <- reorder_cormat(cormat)
 upper_tri <- get_upper_tri(cormat)
 melted_cormat <- melt(upper_tri, na.rm = TRUE)
-#Heatmap
+
+#HEATMAP
 ggheatmap <- ggplot(melted_cormat, aes(Var2, Var1, fill = value))+
   geom_tile(color = "white")+
   scale_fill_gradient2(low = "blue", high = "red", mid = "white",midpoint = 0, limit = c(-1,1), space = "Lab",name="Pearson\nCorrelation") +
@@ -708,132 +655,120 @@ ggheatmap <- ggplot(melted_cormat, aes(Var2, Var1, fill = value))+
   legend.direction = "horizontal")+
   guides(fill = guide_colorbar(barwidth = 7, barheight = 1,title.position = "top", title.hjust = 0.5))
 ggheatmap
-```
-```{r}
-rhotest(db$danceability,db$valence)
-```
-```{r}
-rhotest(db$popularity,db$acousticness)
-```
-```{r}
-rhotest(db$popularity,db$energy)
-```
-```{r}
-rhotest(db$popularity,db$loudness)
-```
-```{r}
-rhotest(db$energy,db$loudness)
-```
-```{r}
-rhotest(db$energy,db$acousticness)
-```
-```{r}
-rhotest(db$loudness,db$acousticness)
-```
-```{r}
-rhotest(db$loudness,db$instrumentalness)
-```
-```{r}
-rhotest(db$danceability,db$tempo)
-```
-```{r}
-rhotest(db$liveness,db$valence)
-```
 
-##Regressione semplice
-Poiché la differenza di scala è talvolta eccessiva, le stime dei coefficienti di regressione non possono spesso essere confrontate. Perciò, è utile mappare i valori di ogni variabile fra 0 e 1 senza modificarne la forma della distribuzione, sfruttando il massimo e il minimo.
-```{r}
-#Mappatura fra 0 e 1
+#TEST PER IL COEFFICIENTE DI CORRELAZIONE DI PEARSON
+  
+rhotest(db$danceability,db$valence)
+
+rhotest(db$popularity,db$acousticness)
+
+rhotest(db$popularity,db$energy)
+
+rhotest(db$popularity,db$loudness)
+
+rhotest(db$energy,db$loudness)
+
+rhotest(db$energy,db$acousticness)
+
+rhotest(db$loudness,db$acousticness)
+
+rhotest(db$loudness,db$instrumentalness)
+
+rhotest(db$danceability,db$tempo)
+
+rhotest(db$liveness,db$valence)
+
+###############################################################################
+
+##REGRESSIONE SEMPLICE##
+
+#MAPPATURA DELLE VARIABILI FRA 0 E 1 (per rendere confrontabili le stime dei coefficienti di regressione)
 ScaleMinMax <- function(x){return((x-min(x))/(max(x)-min(x)))}
 dbs <- db
 for (c in c("acousticness","danceability","duration_ms","energy","instrumentalness","liveness","loudness","popularity","speechiness","tempo","valence" )){
  dbs[c] <- ScaleMinMax(dbs[c]) 
 }
-```
-Le variabili qualitative vengono convertite in tipo "factor", in modo che ogni loro modalità possa essere considerata dal modello come una colonna dummy.
-```{r}
+
+#CONVERSIONE DELLE CATEGORICHE IN "FACTOR"
 dbs[,c("decade","key","mode","explicit")] <-lapply(dbs[,c("decade","key","mode","explicit")],as.factor)
-```
-```{r}
+
 #1) Popolarità ~ Acusticità
 mod<-lm(popularity~acousticness,dbs)
 summary(mod)
-```
-```{r}
+
 #2) Popolarità ~ Chiave
 dbs$key<-mapvalues(db$key,c(0,1,2,3,4,5,6,7,8,9,10,11),c("Do","Do♯","Re","Re♯","Mi","Fa","Fa♯","Sol","Sol♯","La","La♯","Si"))
 summary(lm(popularity~key,dbs)) 
-```
-```{r}
+
 #3) Popolarità ~ Decennio
 summary(lm(popularity~decade,dbs))
-```    
-```{r}
+
 #4) Popolarità ~ Esplicito
 summary(lm(popularity~explicit,dbs))
-```   
-```{r}
+
 #5) Popolarità ~ Tonalità
 summary(lm(popularity~mode,dbs))
-```  
 
-##Regressione multipla per la previsione della popolarità
-```{r}
-#Modello multivariato con le variabili numeriche
+###############################################################################
+
+##REGRESSIONE MULTIPLA PER LA PREVISIONE DELLA POPOLARITÀ##
+
+#MODELLO MULTIVARIATO CON LE VARIABILI NUMERICHE
 mod<-lm(popularity~acousticness+danceability+duration_ms+energy+instrumentalness+liveness+loudness+speechiness+tempo+valence,dbs)
 summary(mod)
-```  
-```{r}
-#Analisi dei residui
+
+#ANALISI DEI RESIDUI
 g<-ggplot(augment(mod), aes(x = .fitted, y = .resid)) + geom_point()+xlab(label="Valori stimati")+ylab(label="Residui")
 g
-#Normal QQ-Plot dei residui
+
+#NORMAL QQ-PLOT DEI RESIDUI
 res_stand<-rstandard(mod)
 qqnorm(res_stand,ylab="Residui standardizzati",xlab="Quantili normali",main="") 
 qqline(rstandard(mod))
-```
-I residui appiono omoschedastici e i loro quantili hanno sufficiente corrispondenza con quelli propri della distribuzione Normale.
-```{r}
-#Calcolo del VIF
+#I residui appiono omoschedastici e i loro quantili hanno sufficiente corrispondenza con quelli propri della distribuzione Normale.
+
+#CALCOLO DEL VIF
 mod<-lm(popularity~acousticness+danceability+energy+instrumentalness+liveness+loudness+speechiness+tempo+valence,dbs)
 VIF<-vif(mod)
 sqrt(VIF)>2
-```
-Energy risulta affetto da un moderato problema di collinearità: poichè la radice del proprio valore VIF è pari a circa 2.2 - oltre la soglia imposta di 2 -, significa che l'errore standard associato al proprio coefficiente di regressione è 2.2 volte più grande del caso in cui "energy" fosse incorrelato con gli altri predittori.
-```{r}
-#Modello delle variabili quantitative senza energy
+#Energy risulta affetto da un moderato problema di collinearità
+
+# # # # # # # # # # # # # # # # # # # # # #  
+  
+#MODELLO DELLE VARIABILI QUANTITATIVE SENZA ENERGY
 mod1<-lm(popularity~acousticness+danceability+instrumentalness+liveness+loudness+speechiness+tempo+valence,dbs)
 summary(mod1)
-```
-```{r}
-#Aggiunta delle variabili qualitative
+
+# # # # # # # # # # # # # # # # # # # # # #  
+
+#AGGIUNTA DELLE VARIABILI QUALITATIVE
 mod2<-lm(popularity~acousticness+danceability+instrumentalness+liveness+loudness+speechiness+tempo+valence+explicit+key+mode+decade,dbs)
 summary(mod2)
-```
-```{r}
-#Analisi dei residui
+
+#ANALISI DEI RESIDUI
 g<-ggplot(augment(mod2), aes(x = .fitted, y = .resid)) + geom_point()+xlab(label="Valori stimati")+ylab(label="Residui")
 g
-#Normal QQ-Plot dei residui
+
+#NORMAL QQ-PLOT DEI RESIDUI
 res_stand<-rstandard(mod2)
 qqnorm(res_stand,ylab="Residui standardizzati",xlab="Quantili normali",main="") 
 qqline(rstandard(mod))
-```
-La variabilità dei residui appare disomogenea: le stime più elevate sono caratterizzate da residui più variabili. L'introduzione delle variabili categoriche ha inoltre ridotto la somiglianza fra i quantili empirici e i quantili normali.
-```{r}
-#Calcolo del VIF
+#La variabilità dei residui appare disomogenea e la somiglianza fra i quantili empirici e i quantili normali si riduce.
+
+#CALCOLO DEL VIF
 VIF<-vif(mod2)
 VIF
-```
-Non vi sono più problemi di multicollinearità.
+#Non vi sono più problemi di multicollinearità.
 
-##Regressione multipla per la previsione del grado di positività
-```{r}
+###############################################################################  
+  
+##REGRESSIONE MULTIPLA PER LA PREVISIONE DEL GRADO DI POSITIVITÀ##
+
 mod4<-lm(valence~key+mode+decade+energy+loudness+tempo,dbs)
 summary(mod4)
-```
-```{r}
-#Calcolo del VIF
+
+
+#CALCOLO DEL VIF
 VIF<-vif(mod4)
 VIF
-```
+
