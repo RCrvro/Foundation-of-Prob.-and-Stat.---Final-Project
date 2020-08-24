@@ -20,6 +20,7 @@ library(e1071)
 library(EnvStats)
 library(reshape2)
 library(car)
+library(broom)
 
 ##Funzioni
 
@@ -816,18 +817,18 @@ summary(lm(popularity~explicit,dbs))
 summary(lm(popularity~mode,dbs))
 ```  
 
-##Regressione multipla
+##Regressione multipla per la previsione della popolarità
 ```{r}
 #Modello multivariato con le variabili numeriche
 mod<-lm(popularity~acousticness+danceability+duration_ms+energy+instrumentalness+liveness+loudness+speechiness+tempo+valence,dbs)
 summary(mod)
 ```  
 ```{r}
-#Analisi dei residui standardizzati
-res_stand <- rstandard(mod)
-plot(res_stand,ylab="Residui standardizzati", xlab="", main="")
-abline(0, 0)
+#Analisi dei residui
+g<-ggplot(augment(mod), aes(x = .fitted, y = .resid)) + geom_point()+xlab(label="Valori stimati")+ylab(label="Residui")
+g
 #Normal QQ-Plot dei residui
+res_stand<-rstandard(mod)
 qqnorm(res_stand,ylab="Residui standardizzati",xlab="Quantili normali",main="") 
 qqline(rstandard(mod))
 ```
