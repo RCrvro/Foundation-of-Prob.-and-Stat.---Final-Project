@@ -19,6 +19,7 @@ library(memisc)
 library(e1071)
 library(EnvStats)
 library(reshape2)
+library(car)
 
 ##Funzioni
 
@@ -120,7 +121,7 @@ rhotest<-function(x,y){
 Il database è disponibile al link [kaggle/spotify-dataset](https://www.kaggle.com/yamaerenay/spotify-dataset-19212020-160k-tracks). La documentazione ufficiale è disponibile al link [spotify/documentation](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-features/).
 ```{r}
 #Caricamento del dataset
-db <- read.csv("/Users/riccardocervero/Desktop/DataScience/Materie/Foundation of Prob & Stats/Progetto FPS - Riccardo Cervero/SpotifyDb.csv")
+db_ <- read.csv("/Users/riccardocervero/Desktop/DataScience/Materie/Foundation of Prob & Stats/Progetto FPS - Riccardo Cervero/SpotifyDb.csv")
 ```
 ```{r}
 #Caricamento database ridotto
@@ -426,11 +427,6 @@ ggplot(db, aes(x=mapvalues(db$key,c(0,1,2,3,4,5,6,7,8,9,10,11),c("Do","Do♯","R
 ```{r}
 #Test ANOVA per l'uguaglianza delle medie
 summary(aov(popularity ~ as.factor(key), db))
-```
-\
-Infine, le variabili qualitative non binarie vengono convertite in "factor".
-```{r}
-for(col in c("decade","key")) {db[col]<-factor(db[col])}
 ```
 
 ##Analisi delle variabili quantitative
@@ -783,24 +779,88 @@ rhotest(db$danceability,db$tempo)
 rhotest(db$liveness,db$valence)
 ```
 
-
-NORMALIZZA FRA 0 E 1 TUTTE (COSì I COEFFICIENTI SONO PARAGONABILI)
-$$\frac{x_i-x_{min}}{x_{max}-x_{min}}$$
-```{r}
-norm <- function(x){return((x-min(x))/(max(x)-min(x)))}
-```
-
 ##Regressione semplice
+Poiché la differenza di scala è talvolta eccessiva, le stime dei coefficienti di regressione non possono spesso essere confrontate. Perciò, è utile mappare i valori di ogni variabile fra 0 e 1 senza modificarne la forma della distribuzione, sfruttando il massimo e il minimo.
 ```{r}
-#Popolarità~Positività
-summary(lm(popularity~valence,db))
+#Mappatura fra 0 e 1
+ScaleMinMax <- function(x){return((x-min(x))/(max(x)-min(x)))}
+dbs <- db
+for (c in c("acousticness","danceability","duration_ms","energy","instrumentalness","liveness","loudness","popularity","speechiness","tempo","valence" )){
+ dbs[c] <- ScaleMinMax(dbs[c]) 
+}
 ```
-
+Le variabili qualitative vengono convertite in tipo "factor", in modo che ogni loro modalità possa essere considerata dal modello come una colonna dummy.
+```{r}
+dbs[,c("decade","key","mode","explicit")] <-lapply(dbs[,c("decade","key","mode","explicit")],as.factor)
+```
+```{r}
+#1) Popolarità ~ Acusticità
+summary(lm(popularity~acousticness,dbs))
+```
+```{r}
+#2) Popolarità ~ Chiave
+dbs$key<-mapvalues(db$key,c(0,1,2,3,4,5,6,7,8,9,10,11),c("Do","Do♯","Re","Re♯","Mi","Fa","Fa♯","Sol","Sol♯","La","La♯","Si"))
+summary(lm(popularity~key,dbs)) #rispetto alla chiave di riferimento Do
+```
+```{r}
+#3) Popolarità ~ Decennio
+summary(lm(popularity~decade,dbs))
+```    
+```{r}
+#4) Popolarità ~ Esplicito
+summary(lm(popularity~explicit,dbs))
+```   
+```{r}
+#5) Popolarità ~ Tonalità
+summary(lm(popularity~mode,dbs))
+```  
 
 ##Regressione multipla
-Regressione (categoriche in dummy)
-**VIF (<2) la funzione seleziona le variabili da mettere nel modello**
-(valence~key, mode, decade)
+```{r}
+#Modello multivariato con le variabili numeriche
+mod<-lm(popularity~acousticness+danceability+duration_ms+energy+instrumentalness+liveness+loudness+speechiness+tempo+valence,dbs)
+summary(mod)
+```  
+```{r}
+#Calcolo del VIF
+mod<-lm(popularity~acousticness+danceability+energy+instrumentalness+liveness+loudness+speechiness+tempo+valence,dbs)
+VIF<-vif(mod)
+sqrt(VIF)>2
+```
+Energy risulta affetto da un moderato problema di collinearità: poichè la radice del proprio valore VIF è pari a circa 2.2 - oltre la soglia imposta di 2 -, significa che l'errore standard associato al proprio coefficiente di regressione è 2.2 volte più grande del caso in cui "energy" fosse incorrelato con gli altri predittori.
+```{r}
+#Modello delle variabili quantitative senza energy
+mod1<-lm(popularity~acousticness+danceability+instrumentalness+liveness+loudness+speechiness+tempo+valence,dbs)
+summary(mod1)
+```
+```{r}
+#Aggiunta delle variabili qualitative
+mod2<-lm(popularity~acousticness+danceability+instrumentalness+liveness+loudness+speechiness+tempo+valence+explicit+key+mode+decade,dbs)
+summary(mod2)
+```
+```{r}
+#Calcolo del VIF
+VIF<-vif(mod2)
+VIF
+```
+Non vi sono più problemi di multicollinearità.
+
+1. Fare queste cose sotto
+3. fit del modello
+
+reg1.res = resid(reg1) #Estrazione dei residui
+plot(data$salbegin, reg1.res,ylab="Residuals", xlab="Salbegin", main="") #Grafico residui
+abline(0, 0)
+
+reg1.stdres = rstandard(reg1) #Residui standardizzati
+plot(data$salbegin, reg1.stdres,ylab="Standardized Residuals",xlab="Salbegin",main="") #Grafico residui standardizzati
+abline(0, 0)
+
+# Normal Probability Plot of Residuals
+qqnorm(reg1.stdres,ylab="Standardized Residuals",xlab="Normal Scores",main="") 
+qqline(reg1.stdres)
+
+-valence~key, mode, decade
 
 
 
