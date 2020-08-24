@@ -1,7 +1,6 @@
 ---
 title: "Progetto di FP&S: Spotify Top Tracks Dataset"
 author: "Riccardo Cervero"
-date: "5/8/2020"
 output: html_document
 ---
 
@@ -19,6 +18,7 @@ library(ggplot2)
 library(memisc)
 library(e1071)
 library(EnvStats)
+library(reshape2)
 
 ##Funzioni
 
@@ -106,6 +106,14 @@ ICmedia <- function(col,l=0.95){
   sds <- sd(col)
   E <- qnorm(l+(1-l)/2)*sds/sqrt(n)
   return(c(mu-E, mu+E))
+}
+
+#Funzione per il test della correlazione lineare di Pearson (95%)
+rhotest<-function(x,y){
+  r<-cor.test(x,y,method="pearson")
+  if(r$p.value>0.05){print("H0 accettata")}else{print("H0 rifiutata (corr. significativa)")}
+  print(paste0("pvalue: ",r$p.value))
+  print(paste0("rho: ",r$estimate))
 }
 ```
 
@@ -664,6 +672,28 @@ ggplot(db, aes(x=decade, y=valence, group=decade)) +
 #Test ANOVA per l'uguaglianza delle medie
 summary(aov(valence ~ as.factor(decade), db))
 ```
+\
+È poi possibile che la positività trasmessa possa dipendere statisticamente dalla tonalità?
+```{r}
+#Test chi quadro
+chisq.test(table(db$mode, db$valence)) 
+```
+Viene rifiutata l'ipotesi di indipendenza fra le due variabili.
+```{r}
+#Test ANOVA per l'uguaglianza delle medie
+summary(aov(valence ~ as.factor(mode), db))
+```
+\
+Infine, si valuta una connessione fra chiave globale della traccia e livello di positività:
+```{r}
+#Test chi quadro
+chisq.test(table(db$key, db$valence)) 
+```
+Viene rifiutata l'ipotesi di indipendenza fra le due variabili.
+```{r}
+#Test ANOVA per l'uguaglianza delle medie
+summary(aov(valence ~ as.factor(key), db))
+```
 
 ###Analisi di "Popularity"
 ```{r}
@@ -682,11 +712,95 @@ pop$distr
 pop$qqnorm()
 ```
 
+##Correlazioni lineari
+Verranno stimati i coefficienti di correlazione di Pearson per tutte le possibili coppie di variabili quantitative e verrà effettuato il corrispettivo test con livello di confidenza fissato al 95% per valutare la significatività statistica delle correlazioni più interessanti.
+```{r}
+#Matrice di correlazione
+db_num <- db[ , !(colnames(db) %in% c("key","mode","explicit","decade")), drop=FALSE]
+cormat <- round(cor(db_num),2)
+melted_cormat <- melt(cormat)
+reorder_cormat <- function(cormat){
+  dd <- as.dist((1-cormat)/2)
+  hc <- hclust(dd)
+  cormat <-cormat[hc$order, hc$order]
+}
+get_upper_tri <- function(cormat){
+    cormat[lower.tri(cormat)]<- NA
+    return(cormat)
+}
+cormat <- reorder_cormat(cormat)
+upper_tri <- get_upper_tri(cormat)
+melted_cormat <- melt(upper_tri, na.rm = TRUE)
+#Heatmap
+ggheatmap <- ggplot(melted_cormat, aes(Var2, Var1, fill = value))+
+  geom_tile(color = "white")+
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white",midpoint = 0, limit = c(-1,1), space = "Lab",name="Pearson\nCorrelation") +
+  theme_minimal()+ 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1,size = 9, hjust = 1))+
+  coord_fixed()+ 
+  geom_text(aes(Var2, Var1, label = value), color = "black", size = 3)+
+  theme(
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.border = element_blank(),
+  panel.background = element_blank(),
+  axis.ticks = element_blank(),
+  legend.justification = c(1, 0),
+  legend.position = c(0.6, 0.7),
+  legend.direction = "horizontal")+
+  guides(fill = guide_colorbar(barwidth = 7, barheight = 1,title.position = "top", title.hjust = 0.5))
+ggheatmap
+```
+```{r}
+rhotest(db$danceability,db$valence)
+```
+```{r}
+rhotest(db$popularity,db$acousticness)
+```
+```{r}
+rhotest(db$popularity,db$energy)
+```
+```{r}
+rhotest(db$popularity,db$loudness)
+```
+```{r}
+rhotest(db$energy,db$loudness)
+```
+```{r}
+rhotest(db$energy,db$acousticness)
+```
+```{r}
+rhotest(db$loudness,db$acousticness)
+```
+```{r}
+rhotest(db$loudness,db$instrumentalness)
+```
+```{r}
+rhotest(db$danceability,db$tempo)
+```
+```{r}
+rhotest(db$liveness,db$valence)
+```
 
-- Nuova var?
-- Correlazione fra di loro (test del rho)
-- VIF (<2)
-- Regressione (categoriche in dummy)
 
-      
+NORMALIZZA FRA 0 E 1 TUTTE (COSì I COEFFICIENTI SONO PARAGONABILI)
+$$\frac{x_i-x_{min}}{x_{max}-x_{min}}$$
+```{r}
+norm <- function(x){return((x-min(x))/(max(x)-min(x)))}
+```
+
+##Regressione semplice
+```{r}
+#Popolarità~Positività
+summary(lm(popularity~valence,db))
+```
+
+
+##Regressione multipla
+Regressione (categoriche in dummy)
+**VIF (<2) la funzione seleziona le variabili da mettere nel modello**
+(valence~key, mode, decade)
+
+
 
