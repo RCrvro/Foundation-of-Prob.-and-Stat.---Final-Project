@@ -795,12 +795,13 @@ dbs[,c("decade","key","mode","explicit")] <-lapply(dbs[,c("decade","key","mode",
 ```
 ```{r}
 #1) Popolarità ~ Acusticità
-summary(lm(popularity~acousticness,dbs))
+mod<-lm(popularity~acousticness,dbs)
+summary(mod)
 ```
 ```{r}
 #2) Popolarità ~ Chiave
 dbs$key<-mapvalues(db$key,c(0,1,2,3,4,5,6,7,8,9,10,11),c("Do","Do♯","Re","Re♯","Mi","Fa","Fa♯","Sol","Sol♯","La","La♯","Si"))
-summary(lm(popularity~key,dbs)) #rispetto alla chiave di riferimento Do
+summary(lm(popularity~key,dbs)) 
 ```
 ```{r}
 #3) Popolarità ~ Decennio
@@ -821,6 +822,16 @@ summary(lm(popularity~mode,dbs))
 mod<-lm(popularity~acousticness+danceability+duration_ms+energy+instrumentalness+liveness+loudness+speechiness+tempo+valence,dbs)
 summary(mod)
 ```  
+```{r}
+#Analisi dei residui standardizzati
+res_stand <- rstandard(mod)
+plot(res_stand,ylab="Residui standardizzati", xlab="", main="")
+abline(0, 0)
+#Normal QQ-Plot dei residui
+qqnorm(res_stand,ylab="Residui standardizzati",xlab="Quantili normali",main="") 
+qqline(rstandard(mod))
+```
+I residui appiono omoschedastici e i loro quantili hanno sufficiente corrispondenza con quelli propri della distribuzione Normale.
 ```{r}
 #Calcolo del VIF
 mod<-lm(popularity~acousticness+danceability+energy+instrumentalness+liveness+loudness+speechiness+tempo+valence,dbs)
@@ -845,20 +856,9 @@ VIF
 ```
 Non vi sono più problemi di multicollinearità.
 
-1. Fare queste cose sotto
-3. fit del modello
 
-reg1.res = resid(reg1) #Estrazione dei residui
-plot(data$salbegin, reg1.res,ylab="Residuals", xlab="Salbegin", main="") #Grafico residui
-abline(0, 0)
 
-reg1.stdres = rstandard(reg1) #Residui standardizzati
-plot(data$salbegin, reg1.stdres,ylab="Standardized Residuals",xlab="Salbegin",main="") #Grafico residui standardizzati
-abline(0, 0)
 
-# Normal Probability Plot of Residuals
-qqnorm(reg1.stdres,ylab="Standardized Residuals",xlab="Normal Scores",main="") 
-qqline(reg1.stdres)
 
 -valence~key, mode, decade
 
