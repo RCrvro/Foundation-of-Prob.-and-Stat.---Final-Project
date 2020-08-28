@@ -58,14 +58,14 @@
 \Authors{Riccardo Cervero\textsuperscript{1}} % Authors
 \affiliation{\textsuperscript{1}\textit{794126, Dipartimento di Informatica, Sistemistica e Comunicazione}} % Author affiliation
 
-\Keywords{Inferenza - Previsione} 
+\Keywords{Inferenza - Regressione lineare} 
 \newcommand{\keywordname}{Keywords} 
 
 %----------------------------------------------------------------------------------------
 %	ABSTRACT
 %----------------------------------------------------------------------------------------
 
-\Abstract{Durante l'ultimo ventennio, grazie allo sviluppo di applicazioni \textit{web} per l'ascolto sempre più efficienti, la fruizione di contenuti musicali ha mostrato un'importante e rapida evoluzione, permettendo all'utente di accedere a qualsiasi brano - o qualunque versione dello stesso - in brevissimo tempo e, nella maggior parte dei casi, gestire autonomamente un archivio di tracce e artisti preferiti. L'industria discografica ha saputo sfruttare tale progresso, non soltanto incrementando il volume di distribuzione e di campagne promozionali, ma anche approfondendo quantitativamente e qualitativamente le tendenze d'ascolto di un pubblico catalogato. Moderne piattaforme offrono, infatti, la possibilità di estrarre ed analizzare una vasta varietà di parametri acustici e non, cosicché il produttore possa dedurre quali sono le caratteristiche più ricercate dal pubblico in un determinato momento e aumentare così la popolarità della traccia. È il caso, ad esempio, di \textit{Spotify}. Questo progetto, pertanto, ha come obiettivo l'analisi statistica delle caratteristiche qualitative e quantitative registrate da \textit{Spotify} in un \textit{database} di tracce disponibili all'interno del proprio servizio di \textit{streaming musicale}. Più precisamente, nella seconda e terza sezione verranno esaminate le variabili,  testata la loro reciproca connessione - di tipo lineare o non - e calcolate stime intervallari per le rispettive medie o proporzioni fra le modalità. Infine, nelle due successive sezioni, verranno esposti i risultati dei modelli di regressione lineare - sia semplice che multivariata - per la previsione della popolarità del brano e della positività emotiva da esso trasmessa.} 
+\Abstract{Durante l'ultimo ventennio, grazie allo sviluppo di applicazioni \textit{web} per l'ascolto sempre più efficienti, la fruizione di contenuti musicali ha mostrato un'importante e rapida evoluzione, permettendo all'utente di accedere a qualsiasi brano - o qualunque versione dello stesso - in brevissimo tempo e, nella maggior parte dei casi, gestire autonomamente un archivio di tracce e artisti preferiti. L'industria discografica ha saputo sfruttare tale progresso, non soltanto incrementando il volume di distribuzione e di campagne promozionali, ma anche approfondendo quantitativamente e qualitativamente le tendenze d'ascolto di un pubblico catalogato. Moderne piattaforme offrono, infatti, la possibilità di estrarre ed analizzare una vasta varietà di parametri acustici e non, cosicché il produttore possa dedurre quali sono le caratteristiche più ricercate dal pubblico in un determinato momento e aumentare così la popolarità delle proprie canzoni. È il caso, ad esempio, di \textit{Spotify}. Questo progetto, pertanto, ha come obiettivo l'analisi statistica delle caratteristiche qualitative e quantitative registrate da \textit{Spotify} in un \textit{database} di tracce disponibili all'interno del proprio servizio di \textit{streaming musicale}. Più precisamente, nella seconda e terza sezione verranno esaminate le variabili,  testata la loro reciproca connessione - di tipo lineare o non - e calcolate stime intervallari per le rispettive medie o proporzioni fra le modalità. Infine, nelle due successive sezioni, verranno esposti i risultati dei modelli di regressione lineare - sia semplice che multivariata - per la previsione della popolarità del brano e della positività emotiva da esso trasmessa.} 
 
 %----------------------------------------------------------------------------------------
 
@@ -114,19 +114,19 @@ Poichè è noto che le tendenze musicali possono essere meglio definite nell'arc
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7 \linewidth]{fig1.png}
-    \label{fig:fig1}
     \caption{Aerogramma per la visualizzazione delle frequenze relative dei decenni.}
+    \label{fig:fig1}
 \end{figure}
 Si è poi proceduto a verificare l'esistenza di una connessione fra questa nuova variabile e il grado di popolarità dei brani, eseguendo un test Chi-quadrato, cui ipotesi nulla
 \begin{equation}
   H_0:\chi^2=0  
 \end{equation}
-coincide con l'indipendenza fra i due fenomeni. L'indice di associazione $\chi^2$ è dunque calcolato con $(k_1-1)(k_2-1)=990$ gradi di libertà, con $k_1=11$ e $k_2=100$ i rispettivi conteggi delle modalità. Fissato un livello di significatività $\alpha=0.05$, è stato ottenuto un valore \textit{pvalue} considerevolmente inferiore ad $\alpha$\footnote{Il \textit{pvalue} in questione è inferiore alla soglia $2.2\bullet10^{-16}$.}, portando a rifiutare, con confidenza al 95\%, l'ipotesi nulla di indipendenza fra il decennio di uscita della traccia e il proprio grado di popolarità. Ciò significa che le distribuzioni condizionali della popolarità variano in base alla decade considerata, come visibile in Figura \ref{fig:fig2}. 
+coincide con l'indipendenza statistica fra i due fenomeni. L'indice di associazione $\chi^2$ è dunque calcolato con $(k_1-1)(k_2-1)=990$ gradi di libertà, con $k_1=11$ e $k_2=100$ i rispettivi conteggi delle modalità. Fissato un livello di significatività $\alpha=0.05$, è stato ottenuto un valore \textit{pvalue} considerevolmente inferiore ad $\alpha$\footnote{Il \textit{pvalue} in questione è inferiore alla soglia $2.2\bullet10^{-16}$.}, portando a rifiutare, con confidenza al 95\%, l'ipotesi nulla di indipendenza fra il decennio di uscita della traccia e il proprio grado di popolarità. Ciò significa che le distribuzioni condizionate della popolarità variano in base alla decade considerata, come visibile in Figura \ref{fig:fig2}. 
 \begin{figure}[H]
     \centering
     \includegraphics[width=1 \linewidth]{fig2.png}
-    \label{fig:fig2}
     \caption{\textit{BoxPlot} condizionati per la visualizzazione delle distribuzioni condizionate di popolarità in base al decennio esaminato.}
+    \label{fig:fig2}
 \end{figure}
 La natura di questa dipendenza statistica viene approfondita mediante test ANOVA, basato sull'ipotesi nulla di uguaglianza di tutte le popolarità medie, ovvero sull'ipotesi che le osservazioni di popolarità relative a ciascun decennio provengano da popolazioni che seguono una distribuzione normale con varianza e media pari. Si punta pertanto a verificare l'ipotesi alternativa, cioè che la media di almeno un gruppo differisca dalle altre, dimostrando che il fattore condizionante della decade ha un'influenza sulla popolarità. La statistica test è associata a 10 gradi di libertà e, fissato un livello di significatività $\alpha=0.05$, è stato ottenuto un valore \textit{pvalue} ancora una volta nettamente inferiore ad $\alpha$, causando il rifiuto dell'ipotesi nulla di uguaglianza delle popolarità medie per decennio e confermando, con una confidenza al 95\%, la presenza di una forte relazione fra queste due variabili. Osservando la Figura, è possibile riscontrare, almeno visivamente, una tendenza comprensibile: la preferenza degli utenti a livello aggregato appare quasi perfettamente ordinata per "novità" del brano.
 
@@ -135,8 +135,8 @@ Un fenomeno, al contrario, distribuito in maniera poco equilibrata è la presenz
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7 \linewidth]{fig3.png}
-    \label{fig:fig3}
     \caption{Aerogramma per la visualizzazione delle rispettive frequenze relative di contenuto esplicito e non esplicito.}
+    \label{fig:fig3}
 \end{figure}
 Nonostante l'elevata numerosità del campione studiato, rimane più utile e affidabile la pratica di stima intervallare del parametro di proporzione $p$, che deriva dallo studio della distribuzione campionaria della frequenza relativa di una determinata classe nella popolazione. L'intervallo di confidenza ottenuto, avrà pertanto i seguenti estremi:
 \begin{equation}
@@ -151,8 +151,8 @@ Inoltre, eseguendo un test ANOVA sull'uguaglianza delle due popolarità medie in
 \begin{figure}[H]
     \centering
     \includegraphics[width=1 \linewidth]{fig4.png}
-    \label{fig:fig4}
     \caption{\textit{BoxPlot} condizionati per la visualizzazione delle distribuzioni condizionate di popolarità in base alla presenza o meno di contenuto esplicito.}
+    \label{fig:fig4}
 \end{figure}
 
 \subsection*{Variabile \textit{Mode}}
@@ -160,8 +160,8 @@ La distribuzione delle due tonalità si presenta sbilanciata: la frequenza perce
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7 \linewidth]{fig5.png}
-    \label{fig:fig5}
     \caption{Aerogramma per la visualizzazione delle frequenze relative delle due tonalità.}
+    \label{fig:fig5}
 \end{figure}
 L'indice di Gini normalizzato viene calcolato pari a 0.83.\\
 Si è proceduto dunque ad estrarre un'informazione più accurata e affidabile tramite stima intervallare delle proporzioni di tracce in tonalità minore e maggiore nella popolazione: ad un livello di confidenza del 95\%, le rispettive probabilità sono contenute nei seguenti intervalli di confidenza - con estremi approssimati al terzo decimale:
@@ -172,8 +172,8 @@ Viene rifiutata, ad un livello di confidenza del 95\%, l'ipotesi che l'indice di
 \begin{figure}[H]
     \centering
     \includegraphics[width=1 \linewidth]{fig6.png}
-    \label{fig:fig6}
     \caption{\textit{BoxPlot} condizionati per la visualizzazione delle distribuzioni condizionate di popolarità in base alla tonalità.}
+    \label{fig:fig6}
 \end{figure}
 
 \subsection*{Variabile \textit{Key}}
@@ -181,16 +181,16 @@ L'ultimo carattere qualitativo, riferito alla chiave globale della traccia, most
 \begin{figure}[H]
     \centering
     \includegraphics[width=1 \linewidth]{fig8.png}
-    \label{fig:fig8}
     \caption{\textit{BarPlot} delle frequenze relative di ciascuna chiave nella popolazione. I segmenti rossi verticali indicano gli intervalli di confidenza calcolati con $(1-\alpha)=0.95$. Dall'osservazione del grafico, è possibile dedurre che "Do" sia la chiave più frequente.}
+    \label{fig:fig8}
 \end{figure}
 Viene poi rifiutata, con un livello di significatività $\alpha=0.05$, l'ipotesi di indipendenza statistica fra la popolarità e la chiave. Infine, eseguendo un test ANOVA con livello di confidenza del 95\%, si rifiuta anche l'ipotesi di uguaglianza fra le popolarità medie condizionate alla chiave globale con cui è stata composta la traccia. Ciò significa che la scelta della chiave, così come la selezione di una determinata tonalità e l'introduzione di contenuto esplicito nel testo, ha un'influenza sul livello di popolarità che raggiungerà il brano.\\
 In Figura \ref{fig:fig9}, è possibile osservare le distribuzioni della popolarità condizionata alla chiave.
 \begin{figure}[H]
     \centering
     \includegraphics[width=1 \linewidth]{fig9.png}
-    \label{fig:fig9}
     \caption{\textit{BoxPlot} condizionati per la visualizzazione delle distribuzioni condizionate di popolarità in base alla chiave globale.}
+    \label{fig:fig9}
 \end{figure}
 %------------------------------------------------
 \section{Analisi dei caratteri quantitativi}\label{cquant}
@@ -222,26 +222,26 @@ Le statistiche descrittive sul livello di "acusticità" della traccia sono riass
 \end{tabular}
 \caption{Statistiche descrittive calcolate sul livello di acusticità.}
 \end{table}}
-Dal fatto che moda e mediana differiscano è possibile dedurre che la distribuzione sia asimmetrica. Tuttavia, la differenza quasi trascurabile fra di esse è indizio di uno scarso grado di deviazione dalla condizione di simmetria. Queste deduzioni sono confermate dal valore - positivo e basso - dell'indice di asimmetria: $\frac{m_3}{m_2^{3/2}}=0.009$.\\
-La distribuzione di \textit{Acousticness} è, inoltre, platicurtica, perchè la propria curtosi è inferiore al valore dell'indice in condizione di normalità, ovvero 3: $\frac{m_4}{m_2^{2}}=1.386$. Questa caratteristica implica generalmente un inspessimento delle code ed un appiattimento della campana gaussiana. Tali peculiarità vengono ritrovate visualizzando la distribuzione dell'acusticità da un punto di vista grafico (Figura \ref{fig:fig11}).
+È possibile dedurre che la distribuzione sia asimmetrica. Tuttavia, la differenza quasi trascurabile fra media e mediana è indizio di uno scarso grado di deviazione dalla condizione di simmetria. Queste deduzioni sono confermate dal valore - positivo e basso - dell'indice di asimmetria: $\frac{m_3}{m_2^{3/2}}=0.009$.\\
+La distribuzione di \textit{Acousticness} è, inoltre, platicurtica, perchè la propria curtosi è inferiore al valore dell'indice in condizione di normalità, ovvero 3: $\frac{m_4}{m_2^{2}}=1.386$. Questa caratteristica implica generalmente un inspessimento delle code ed un appiattimento della campana gaussiana. Tali peculiarità vengono ritrovate visualizzando la distribuzione dell'acusticità (Figura \ref{fig:fig11}).
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{fig11.png}
-    \label{fig:fig11}
     \caption{Istogramma dell'acusticità. Le linee verticali tratteggiate corrispondono alla media (in blue) e alla mediana (in verde).}
+    \label{fig:fig11}
 \end{figure}
 La forte deviazione dalla condizione Normale è suggerita anche dal grafico \textit{Quantile-Quantile} (Figura \ref{fig:fig12}), specialmente per quanto riguarda le code: quanto minore la somiglianza fra l'andamento dei punti corrispondenti ai quantili empirici e la retta associata alla distribuzione dei quantili teorici normali, tanto maggiore la differenza fra la variabile esaminata e la Gaussiana.
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{fig12.png}
-    \label{fig:fig12}
     \caption{Quantile-Quantile Plot per il confronto fra i quantili empirici e i quantili teorici.}
+    \label{fig:fig12}
 \end{figure}
 Infine, con un livello di confidenza al 95\%, è possibile affermare che l'acusticità media sia contenuta nell'intervallo:
 \begin{equation}
     (0.491, 0.495)
 \end{equation}
-Ciò significa che, generalizzando con confidenza al 95\%, le tracce misucali hanno in media una probabilità di essere completamente acustiche inferiore rispetto alla probabilità di includere strumenti elettronici, poichè l'intervallo di confidenza di "acousticness" ha estremo superiore minore di 0.5. 
+Ciò significa che, generalizzando con confidenza al 95\%, le tracce musicali hanno in media una probabilità di essere completamente acustiche inferiore rispetto alla probabilità di includere strumenti elettronici, poichè l'intervallo di confidenza di "acousticness" ha estremo superiore minore di 0.5. 
 \subsection*{Variabile \textit{Danceability}}
 Le statistiche descrittive sul livello di ballabilità della traccia sono riassunte nella Tabella 2:
 {\begin{table}[H]
@@ -266,21 +266,21 @@ La ballabilità dei brani rivela una forma asimmetrica negativa, con un valore d
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{fig14.png}
-    \label{fig:fig14}
     \caption{Quantile-Quantile Plot per il confronto fra i quantili empirici e i quantili teorici.}
+    \label{fig:fig14}
 \end{figure}
 In Figura \ref{fig:fig13} è visibile la forma della distribuzione della ballabilità.
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{fig13.png}
-    \label{fig:fig13}
     \caption{Istogramma della ballabilità. Le linee verticali tratteggiate corrispondono alla media (in blue) e alla mediana (in verde).}
+    \label{fig:fig13}
 \end{figure}
 La ballabilità media generale è stimata, con un livello di confidenza del 95\%, nel seguente intervallo:
 \begin{equation}
     (0.537, 0.539)
 \end{equation}
-Si conclude che l'industria discografica preferisce produrre, in media, basi musicali che possano essere più facilmente accompagnate da una danza, ovvero con un livello di {danceability} ben oltre lo 0.5.
+Si conclude che l'industria discografica preferisce produrre, in media, basi musicali che possano essere più facilmente accompagnate da una danza, ovvero con un livello di \textit{danceability} ben oltre lo 0.5.
 
 \subsection*{Variabile \textit{Instrumentalness}}
 Il grado di confidenza con cui si definisce "strumentale" la traccia è, innanzitutto, descritto dalle grandezze in Tabella 3:
@@ -306,20 +306,20 @@ Esso presenta, pertanto, una variabilità nettamente superiore rispetto alle var
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{fig15.png}
-    \label{fig:fig15}
     \caption{Istogramma della \textit{instrumentalness}. Le linee verticali tratteggiate corrispondono alla media (in blue) e alla mediana (in verde).}
+    \label{fig:fig15}
 \end{figure}. 
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{fig16.png}
-    \label{fig:fig16}
     \caption{Quantile-Quantile Plot per il confronto fra i quantili empirici e i quantili teorici.}
+    \label{fig:fig16}
 \end{figure}
-Infine, la quantità media di contenuto esclusivamente strumentale all'interno delle tracce, con un livello di confidenza del 95\%, viene stimato compreso nel seguente intervallo di confidenza:
+Infine, la stima della quantità media di contenuto esclusivamente strumentale all'interno delle tracce, con un livello di confidenza del 95\%, è compreso nel seguente intervallo di confidenza:
 \begin{equation}
     (0.16,0.163)
 \end{equation}
-È quindi ragionevole concludere - con confidenza al 95\% - che, in media, si tenda a produrre brani che contengono al massimo un 16.3\% di parti strumentali.
+È quindi ragionevole concludere - con confidenza al 95\% - che, in media, si tenda a produrre brani che contengono tra il 16 e il 16.3\% di parti strumentali.
 
 \subsection*{Variabile \textit{Speechiness}}
 Poichè nel paragrafo precedente si è dimostrato come la voce formi elemento tendenzialmente essenziale nella produzione di una traccia, è utile approfondire la variabile che distingue gli elementi vocali in "cantato" e "parlato", con un grado di \textit{speechiness} compreso fra 0 e 1. Le statistiche descrittive di base sono mostrate nella Tabella 4:
@@ -345,14 +345,14 @@ La variabilità tende ad essere ancora una volta elevata, e la distribuzione pre
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{fig17.png}
-    \label{fig:fig17}
     \caption{Istogramma della \textit{speechiness}. Le linee verticali tratteggiate corrispondono alla media (in blue) e alla mediana (in verde).}
+    \label{fig:fig17}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{fig18.png}
-    \label{fig:fig18}
     \caption{Quantile-Quantile Plot per il confronto fra i quantili empirici e i quantili teorici.}
+    \label{fig:fig18}
 \end{figure}
 Queste caratteristiche sono, in altre parole, manifestazione di una generale tendenza a preferire una base vocale cantata, piuttosto che simile ad un discorso, nonostante la grande diffusione di generi musicali come il \textit{rap}. Infatti, la probabilità media di rilevare del parlato all'interno delle canzoni è, comprensibilmente, molto bassa, stimata - con un livello di confidenza del 95\% - all'interno del seguente intervallo:
 \begin{equation}
@@ -384,14 +384,14 @@ La distribuzione è positivamente asimmetrica, con un indice pari a 2.146, e lep
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{fig19.png}
-    \label{fig:fig19}
     \caption{Istogramma della \textit{liveness}. Le linee verticali tratteggiate corrispondono alla media (in blue) e alla mediana (in verde).}
+    \label{fig:fig19}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{fig20.png}
-    \label{fig:fig20}
     \caption{Quantile-Quantile Plot per il confronto fra i quantili empirici e i quantili teorici.}
+    \label{fig:fig20}
 \end{figure}
 Infine, è possibile affermare, con confidenza al 95\%, che la probabilità media che la traccia sia stata registrata dal vivo sia compresa nell'intervallo
 \begin{equation}
@@ -422,15 +422,15 @@ La distribuzione presenta una leggera asimmetria negativa (-0.124) e una forma p
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{fig21.png}
-    \label{fig:fig21}
     \caption{Istogramma della positività trasmessa dal brano. Le linee verticali tratteggiate corrispondono alla media (in blue) e alla mediana (in verde).}
+    \label{fig:fig21}
 \end{figure}
 Le code spesse deformano la tipica forma a campana verso una densità visibilmente più piatta. Questa anomalia è riscontrabile in Figura \ref{fig:fig22}.
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{fig22.png}
-    \label{fig:fig22}
     \caption{Quantile-Quantile Plot per il confronto fra i quantili empirici e i quantili teorici.}
+    \label{fig:fig22}
 \end{figure}
 Il livello emotivo, pertanto, si distribuisce in maniera bilanciata: la produzione musicale, nelle proprie numerose declinazioni di genere, è in grado di esprime qualsiasi tipo di stato d'animo, dal più negativo - quando \textit{valence} è nulla - al più positivo - quando la colonna assume valore 1, senza essere dominata da nessuna delle due polarità. Tuttavia, con confidenza al 95\%, è possibile affermare che l'industria discografica propenda leggermente verso un sentimento più positivo, poiché il livello emotivo medio è stimato all'interno dell'intervallo
 \begin{equation}
@@ -441,8 +441,8 @@ Si è proceduto, poi, a verificare l'esistenza di qualche tipo di connessione st
 \begin{figure}[H]
     \centering
     \includegraphics[width=1 \linewidth]{fig23.png}
-    \label{fig:fig23}
     \caption{\textit{BoxPlot} condizionati per la visualizzazione delle distribuzioni condizionate di positività in base al decennio esaminato.}
+    \label{fig:fig23}
 \end{figure}
 Nella stessa maniera, vengono esaminate le dipendenze della positività rispetto alla tonalità e alla chiave del brano, ipotizzando che gli elementi tecnici di base possano influenzare il sentimento della traccia finale. In entrambi i casi, l'ipotesi di indipendenza viene rifiutata tramite calcolo dell'indice di connessione $\chi^2$ con livello di significatività 0.05, e così anche l'ipotesi di uguaglianza delle medie di \textit{Valence} rispetto a entrambi i fattori condizionanti - test ANOVA -, sempre con confidenza al 95\%.
 
@@ -469,22 +469,22 @@ La moda viene individuata in corrispondenza di 0: il grado di popolarità su \te
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{fig24.png}
-    \label{fig:fig24}
     \caption{Istogramma della popolarità. Le linee verticali tratteggiate corrispondono alla media (in blue) e alla mediana (in verde).}
+    \label{fig:fig24}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{fig25.png}
-    \label{fig:fig25}
     \caption{Quantile-Quantile Plot per il confronto fra i quantili empirici e i quantili teorici.}
+    \label{fig:fig25}
 \end{figure}
 \subsection{Correlazioni lineari}\label{corr}
 Successivamente, sono stati stimati i coefficienti di correlazione di Pearson per tutte le possibili coppie di variabili quantitative, effettuando il corrispettivo test con livello di confidenza fissato al 95\%, per valutare la significatività statistica dei valori $\rho$. Il grado di reciproca dipendenza lineare fra i vari caratteri è visibile in Figura \ref{fig:fig26}.
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{fig26.png}
-    \label{fig:fig26}
     \caption{\textit{Heatmap} per la visualizzazione dei coefficienti di correlazione lineare di Pearson fra tutte le variabili quantitative.}
+    \label{fig:fig26}
 \end{figure}
 L'unica correlazione lineare statisticamente non significativa ad un livello di confidenza del 95\% viene riscontrata fra \textit{liveness} e positività: il \textit{pvalue} è 0.86.\\
 I valori $\rho$ più rilevanti possono essere riscontrati fra le seguenti coppie di fenomeni:
@@ -501,9 +501,9 @@ In fase di costruzione di un modello di regressione lineare, sarà necessario va
 Appurata l’esistenza di legami lineari statisticamente significativi fra il grado di popolarità di una traccia - considerato in questa fase come variabile dipendente - e molte delle altre colonne disponbili - variabili indipendenti -, si pone un vincolo di linearità sulla forma funzionale del modello che possa descrivere tali relazioni, ricercando, dunque, la retta ottimale in termini di Errore Quadratico Medio (MSE).\\
 In particolare, il modello di regressione lineare semplice è specificato dalla seguente relazione:
 \begin{equation}
-    y_i=f(x_i;β)+ε_i
+    y_i=f(x_i;\beta)+\in_i
 \end{equation}
-dove $ε_i$ è l'errore casuale e $f(x_i;β)$ è la funzione che combina i valori delle variabili indipendenti e i rispettivi coefficienti di regressione per determinare l'osservazione $y_i$. In questa Sezione, verranno stimati modelli univariati caratterizzati da una funzione $f(x_i;β)$ di primo grado.\\
+dove $\in_i$ è l'errore casuale e $f(x_i;\beta)$ è la funzione che combina i valori delle variabili indipendenti e i rispettivi coefficienti di regressione per determinare l'osservazione $y_i$. In questa Sezione, verranno stimati modelli univariati caratterizzati da una funzione $f(x_i;\beta)$ di primo grado.\\
 È opportuno specificare che l'eccessiva differenza di scala fra alcune variabili ha reso necessaria una mappatura di tutti i caratteri quantitativi fra 0 e 1, in quanto, altrimenti, le stime dei coefficienti di regressione non sarebbero state confrontabili, dunque inutili per l'obiettivo del progetto. Questa operazione ha implicato l'uso di una trasformazione in grado di mantenere inalterata la forma della distribuzione e gestire valori negativi:
 \begin{equation}
     X_i'=\frac{X_i-X_{\text{min}}}{X_{\text{max}}-X_{\text{min}}}
@@ -516,7 +516,7 @@ Data $P$, variabile del grado di popolarità, e $V$, positività trasmessa, il m
 \begin{equation}
     P=0.311484+0.007671\bullet V
 \end{equation}
-Il test $t$ rifiuta l'ipotesi nulla per quanto riguarda sia l'intercetta che il coefficiente angolare, producendo un \textit{pvalue} estremamente basso nel primo caso e moderatamente basso nel secondo. $\beta$ mostra che, ad un aumento di un'unità percentuale del livello di positività trasmessa, la popolarità cresce, al netto dell'intercetta, di circa uno 0.008\%. Nonostante la significatività statistica del coefficiente di regressione, la capacità di tale modello di descrivere la variabilità della popolarità rimane molto scarsa: $R^2<0.001$.
+Il test $t$ rifiuta l'ipotesi nulla per quanto riguarda sia l'intercetta che il coefficiente angolare, producendo un \textit{pvalue} estremamente basso nel primo caso e moderatamente basso nel secondo. Il coefficiente angolare $\beta_1$ mostra che, ad un aumento di un'unità percentuale del livello di positività trasmessa, la popolarità cresce, al netto dell'intercetta, di circa uno 0.008\%. Nonostante la significatività statistica del coefficiente di regressione, la capacità di tale modello di descrivere la variabilità della popolarità rimane molto scarsa: $R^2<0.001$.
 \subsection*{Popolarità $\sim$ Chiave}
 Data $P$, variabile del grado di popolarità, il modello ottenuto include i seguenti parametri $\beta$ - con stime approssimate al secondo decimale per esigenze di leggibilità:
 {\begin{table}[H]
@@ -547,8 +547,8 @@ I coefficienti di regressione associati a ciascun decennio sono, ad un livello d
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\linewidth]{figu.png}
-    \label{fig:figu}
     \caption{Le stime dei coefficienti di regressione per decennio seguono un ordine cronologico crescente.}
+    \label{fig:figu}
 \end{figure}
 
 \subsection*{Popolarità $\sim$ Tonalità}
@@ -556,27 +556,28 @@ Data P, popolarità del brano, il modello stimato è:
 \begin{equation}
     P=0.3266221-0.0156036\bullet\text{Tonalità maggiore}
 \end{equation}
-Perciò, la scelta di una tonalità maggiore penalizza la variabili dipendente, abbassando di circa l'1.6\% il grado di popolarità del brano.
+Perciò, la scelta di una tonalità maggiore penalizza il valore della variabile dipendente, abbassando di circa l'1.6\% il grado di popolarità del brano.
 %------------------------------------------------
 \section{Regressione lineare multipla}
 I modelli multivariati includono, invece, due o più variabili indipendenti per prevedere il valore della $Y$. I coefficienti di regressione rappresentano, quindi, le stime delle variazioni attese della variabile dipendente associate ad una variazione unitaria della singola $x_j$, mantenendo fisso tutto il resto del modello, quindi al netto degli altri predittori.\\
 I successivi paragrafi esporranno i risultati ottenuti dalla costruzione di modelli lineari multivariati per la previsione del grado di popolarità del brano e del livello di positività da esso trasmesso. La significatività statistica della relazione fra le variabili dipendenti e l'insieme dei predittori è verificata mediante test $F$, cui ipotesi nulla nega l'esistenza di tale dipendenza lineare e ipotesi alternativa conferma il legame con almeno un regressore. La bontà di adattamento è stata valutata mediante il coefficiente di determinazione multiplo $R^2$ e la sua versione corretta, per evitare di sovrastimare la capacità del modello. 
 \subsection{Previsione di \textit{Popularity}}
-Innanzitutto, viene regredita la variabile \textit{popularity} sull'insieme totale di caratteri quantitativi. I coefficienti di regressione vengono stimati, con livello di confidenza al 95\%, tutti altamente significativi, eccetto il parametro associato alla durata del brano, che non appare pertanto utile per prevedere il grado di diffusione di un brano. Gli unici coefficienti con segno negativo sono relativi ad acusticità (-0.23), presenza di parti esclusivamente strumentali (-0.07), \textit{liveness} (-0.08), presenza di parlato \textit{speechiness} (-0.25) e positività (-0.23). Pertanto, sono da ritenersi più popolari le tracce che contengono strumenti elettronici - hanno dunque bassa \textit{acousticness} -, prive di parti strumentali, registrate in studio, prive di "parlato" e con un sentimento tendente verso una polarità negativa. Al contrario, i fenomeni con il maggior impatto positivo sulla $Y$ sono la ballabilità (0.27), il volume complessivo (0.21) e l'energia del pezzo (0.11). Eseguendo un test $F$ con $\alpha=0.05$, viene rifiutata l'ipotesi di incorrelazione fra la popolarità e il set di caratteri quantitativi. Il coefficiente di determinazione multiplo è abbastanza buono (0.46), ed è pari alla propria versione corretta, indice del fatto che la capacità del modello non viene sopravvalutata.\\
-Come visto nella Sezione \ref{corr}, molte delle variabili incluse nella matrice del disegno sono risultate fortemente correlate. È dunque necessario verificare che il modello appena stimato non sia affetto da problemi di multicollinearità, che possano penalizzarne la correttezza. Questa operazione è possibile grazie all'indice \textit{Variance Inflation Factor (VIF)}, il quale fornisce, per ciascun regressore, l'incremento subito dalla varianza della stima di $\beta$ rispetto alla condizione di perfetta incorrelazione fra le variabili indipendenti. Considerando una soglia pari a 4, la variabile "energia" risulta affetta da un moderato problema di collinearità. Risultava, infatti, essere il fenomeno associato ai più elevati valori di correlazione. L'energia viene pertanto rimossa dal set fi candidati esplicativi. Dopo la rimozione, il coefficiente di regressione associato al volume raggiunge un valore quasi doppio rispetto alla stima precedente (0.38), confermandosi come fattore di maggior influenza sulla popolarità della traccia. L'$R^2$, invece, rimane quasi invariato.\\
+Innanzitutto, viene regredita la variabile \textit{popularity} sull'insieme totale di caratteri quantitativi. I coefficienti di regressione vengono stimati, con livello di confidenza al 95\%, tutti altamente significativi, eccetto il parametro associato alla durata del brano, che non appare pertanto utile per prevedere il grado di diffusione di un brano. Gli unici coefficienti con segno negativo sono relativi ad acusticità (-0.23), presenza di parti esclusivamente strumentali (-0.07), \textit{liveness} (-0.08), presenza di parlato \textit{speechiness} (-0.25) e positività (-0.23). Pertanto, sono da ritenersi più popolari le tracce che contengono strumenti elettronici - hanno dunque bassa \textit{acousticness} -, prive di parti strumentali, registrate in studio, prive di "parlato" e con un sentimento tendente verso una polarità negativa. Al contrario, i fenomeni con il maggior impatto positivo sulla $Y$ sono la ballabilità (0.27), il volume complessivo (0.21) e l'energia (0.11). Eseguendo un test $F$ con $\alpha=0.05$, viene rifiutata l'ipotesi di incorrelazione fra la popolarità e il set di caratteri quantitativi. Il coefficiente di determinazione multiplo è abbastanza buono (0.46), ed è pari alla propria versione corretta, indice del fatto che la capacità del modello non viene sopravvalutata.\\
+Come visto nella Sezione \ref{corr}, molte delle variabili incluse nella matrice del disegno sono risultate fortemente correlate. È dunque necessario verificare che il modello appena stimato non sia affetto da problemi di multicollinearità, che possano penalizzarne la correttezza. Questa operazione è possibile grazie all'indice \textit{Variance Inflation Factor (VIF)}, il quale fornisce, per ciascun regressore, l'incremento subito dalla varianza della stima di $\beta$ rispetto alla condizione di perfetta incorrelazione fra le variabili indipendenti. Considerando una soglia pari a 4, la variabile "energia" risulta affetta da un moderato problema di collinearità. Risultava, infatti, essere il fenomeno associato ai più elevati valori di correlazione. L'energia viene pertanto rimossa dal set di candidati esplicativi.\\
+Dopo la rimozione, il coefficiente di regressione associato al volume raggiunge un valore quasi doppio rispetto alla stima precedente (0.38), confermandosi come fattore quantitativo di maggior influenza sulla popolarità della traccia. L'$R^2$, invece, rimane quasi invariato.\\
 Tale modello è stato infine integrato con le variabili qualitative della chiave, tonalità, presenza di contenuto esplicito e decennio. Le modalità di quest'ultima variabile sono associate a coefficienti molto elevati e tutti altamente significativi. Soltanto due delle classi della chiave, invece, vengono ritenute significativamente correlate alla variabile dipendente. I caratteri quantitativi, esclusa l'energia a priori, sono altamente significativi, ma le stime sono nettamente inferiori rispetto a quelle relative ai decenni. L'introduzione di \textit{Decade} ha pertanto ridimensionato la relativa importanza di tutti gli altri regressori, elevando, però, il coefficiente di determinazione multiplo: $R^2=0.79$, pari alla propria versione corretta. Il test $F$ rifiuta l'ipotesi nulla con un livello di confidenza del 95\%, ribadendo l'evidenza di un forte legame lineare fra \textit{popularity} e il set di predittori. Infine, il calcolo del \textit{VIF} verifica l'assenza di problemi di multicollinearità nella matrice del disegno.\\
-Tuttavia, in Figura \ref{fig:29} e \ref{fig:fig30} è possibile individuare due principali caratteristiche dei residui di regressione ottenuti dall'ultimo modello stimato: l'eteroschedasticità - dato che, come si osserva, le previsioni sui valori più elevati sono associate a residui più variabili - e la distribuzione dei quantili abbastanza differente rispetto alla Normale.
+Tuttavia, in Figura \ref{fig:29} e \ref{fig:fig30} è possibile individuare due caratteristiche negative dei residui di regressione ottenuti dall'ultimo modello stimato: l'eteroschedasticità - dato che, come si osserva, le previsioni sui valori più elevati sono associate a residui più variabili - e la distribuzione dei quantili abbastanza differente rispetto alla Normale.
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\linewidth]{fig29.png}
-    \label{fig:fig29}
     \caption{\textit{Scatter plot} dei residui sui valori stimati dal modello.}
+    \label{fig:fig29}
 \end{figure}
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\linewidth]{fig30.png}
-    \label{fig:fig30}
     \caption{Grafico \textit{Quantile-Quantile} per la valutazione della normalità dei residui.}
+    \label{fig:fig30}
 \end{figure}
 
 \subsection{Previsione di \textit{Valence}}
