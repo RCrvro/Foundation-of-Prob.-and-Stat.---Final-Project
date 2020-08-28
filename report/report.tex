@@ -478,7 +478,7 @@ La moda viene individuata in corrispondenza di 0: il grado di popolarità su \te
     \label{fig:fig25}
     \caption{Quantile-Quantile Plot per il confronto fra i quantili empirici e i quantili teorici.}
 \end{figure}
-\subsection{Correlazioni lineari}
+\subsection{Correlazioni lineari}\label{corr}
 Successivamente, sono stati stimati i coefficienti di correlazione di Pearson per tutte le possibili coppie di variabili quantitative, effettuando il corrispettivo test con livello di confidenza fissato al 95\%, per valutare la significatività statistica dei valori $\rho$. Il grado di reciproca dipendenza lineare fra i vari caratteri è visibile in Figura \ref{fig:fig26}.
 \begin{figure}[H]
     \centering
@@ -497,15 +497,94 @@ I valori $\rho$ più rilevanti possono essere riscontrati fra le seguenti coppie
 \end{itemize}
 In fase di costruzione di un modello di regressione lineare, sarà necessario valutare queste collinearità fra le colonne della matrice del disegno, poiché potrebbero penalizzare la corretta stima dei coefficienti di regressione.
 %------------------------------------------------
-\section{Regressione semplice}
+\section{Regressione lineare semplice}
+Appurata l’esistenza di legami lineari statisticamente significativi fra il grado di popolarità di una traccia - considerato in questa fase come variabile dipendente - e molte delle altre colonne disponbili - variabili indipendenti -, si pone un vincolo di linearità sulla forma funzionale del modello che possa descrivere tali relazioni, ricercando, dunque, la retta ottimale in termini di Errore Quadratico Medio (MSE).\\
+In particolare, il modello di regressione lineare semplice è specificato dalla seguente relazione:
+\begin{equation}
+    y_i=f(x_i;β)+ε_i
+\end{equation}
+dove $ε_i$ è l'errore casuale e $f(x_i;β)$ è la funzione che combina i valori delle variabili indipendenti e i rispettivi coefficienti di regressione per determinare l'osservazione $y_i$. In questa Sezione, verranno stimati modelli univariati caratterizzati da una funzione $f(x_i;β)$ di primo grado.\\
+È opportuno specificare che l'eccessiva differenza di scala fra alcune variabili ha reso necessaria una mappatura di tutti i caratteri quantitativi fra 0 e 1, in quanto, altrimenti, le stime dei coefficienti di regressione non sarebbero state confrontabili, dunque inutili per l'obiettivo del progetto. Questa operazione ha implicato l'uso di una trasformazione in grado di mantenere inalterata la forma della distribuzione e gestire valori negativi:
+\begin{equation}
+    X_i'=\frac{X_i-X_{\text{min}}}{X_{\text{max}}-X_{\text{min}}}
+\end{equation}
+con $X_{\text{min}}$ e $X_{\text{max}}$ rispettivamente il massimo e il minimo della colonna X. Si è inoltre deciso di convertire le variabili qualitative in tipo \texttt{factor}, in modo che ogni loro modalità potesse essere considerata come una colonna \textit{dummy}, e potesse essere quindi possibile estrarre l'influenza di ciascuna classe al netto delle altre.\\
+La significatività statistica dei coefficienti di regressione di ciascun modello è stata verificata mediante test $t$ con un livello di significatività $\alpha=0.05$, mentre la bontà di adattamento è stata valutata mediante coefficiente di determinazione $R^2$.
+I risultati di ciascuna prova sono riassunti come segue.
+\subsection*{Popolarità $\sim$ Positività}
+Data $P$, variabile del grado di popolarità, e $V$, positività trasmessa, il modello stimato è
+\begin{equation}
+    P=0.311484+0.007671\bullet V
+\end{equation}
+Il test $t$ rifiuta l'ipotesi nulla per quanto riguarda sia l'intercetta che il coefficiente angolare, producendo un \textit{pvalue} estremamente basso nel primo caso e moderatamente basso nel secondo. $\beta$ mostra che, ad un aumento di un'unità percentuale del livello di positività trasmessa, la popolarità cresce, al netto dell'intercetta, di circa uno 0.008\%. Nonostante la significatività statistica del coefficiente di regressione, la capacità di tale modello di descrivere la variabilità della popolarità rimane molto scarsa: $R^2<0.001$.
+\subsection*{Popolarità $\sim$ Chiave}
+Data $P$, variabile del grado di popolarità, il modello ottenuto include i seguenti parametri $\beta$ - con stime approssimate al secondo decimale per esigenze di leggibilità:
+{\begin{table}[H]
+\centering
+\begin{tabular}[t]{lcc}
+\toprule
+&Parametro&PValue\\
+\midrule
+\textbf{Intercetta}&0.31&0\\
+\textbf{Do\#}&0.04&0\\
+\textbf{Re}&0.01&0\\
+\textbf{Re\#}&-0.06&0\\
+\textbf{Mi}&0.02&0\\
+\textbf{Fa}&-0.02&0\\
+\textbf{Fa\#}&0.04&0\\
+\textbf{Sol}&0.005&0.02\\
+\textbf{Sol\#}&-0.002&0.37\\
+\textbf{La}&0.02&0\\
+\textbf{La\#}&-0.016&0\\
+\textbf{Si}&0.04&0\\
+\bottomrule
+\end{tabular}
+\end{table}}
+La stima del coefficiente di regressione della chiave di "Sol" è positiva ma associata ad una bassa significatività statistica: il \textit{pvalue} è di poco inferiore ad $\alpha$. Il coefficiente di regressione della chiave di "Sol\#" è, invece, non significativo: non vi è evidenza di alcuna relazione lineare fra l'uso di tale chiave in fase di composizione del brano e il livello di popolarità. Tutte le altre stime sono altamente significative - il \textit{pvalue} tende ad essere nullo -, ma è possibile operare una distinzione. Infatti, le chiavi di "Do\#", "Re", "Mi", "Fa\#", "La" e "Si" hanno un'influenza positiva sulla popolarità: il loro uso permette di incrementare il grado della variabile dipendente, da una variazione minima dell'1\% (con "Re") ad un incremento massimo del 4\% ("Do\#" e "Fa\#"). Al contrario, le chiavi di "Re\#", "Fa" e "La\#" si rivelano fattori penalizzanti, con un decremento di popolarità che va dall'1\% al 6\%. In generale, la bontà di adattamento del modello è ancora scarsa: $R^2=0.013$.
 
+\subsection*{Popolarità $\sim$ Decennio}
+I coefficienti di regressione associati a ciascun decennio sono, ad un livello di confidenza del 95\%, tutti altamente significativi, tranne il parametro relativo agli anni '40. È possibile confermare quanto ipotizzato nella Sezione \ref{year}: l'influenza esercitata dalla modalità di decennio sulla popolarità è sempre positiva - i $\beta$ sono tutti maggiori di 0 -, ma la dimensione dell'incremento - ovvero il valore di tali parametri - cresce in ordine cronologico (Figura \ref{fig:figu}).
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{figu.png}
+    \label{fig:figu}
+    \caption{Le stime dei coefficienti di regressione per decennio seguono un ordine cronologico crescente.}
+\end{figure}
+
+\subsection*{Popolarità $\sim$ Tonalità}
+Data P, popolarità del brano, il modello stimato è:
+\begin{equation}
+    P=0.3266221-0.0156036\bullet\text{Tonalità maggiore}
+\end{equation}
+Perciò, la scelta di una tonalità maggiore penalizza la variabili dipendente, abbassando di circa l'1.6\% il grado di popolarità del brano.
 %------------------------------------------------
-\section{Regressione multipla}
+\section{Regressione lineare multipla}
+I modelli multivariati includono, invece, due o più variabili indipendenti per prevedere il valore della $Y$. I coefficienti di regressione rappresentano, quindi, le stime delle variazioni attese della variabile dipendente associate ad una variazione unitaria della singola $x_j$, mantenendo fisso tutto il resto del modello, quindi al netto degli altri predittori.\\
+I successivi paragrafi esporranno i risultati ottenuti dalla costruzione di modelli lineari multivariati per la previsione del grado di popolarità del brano e del livello di positività da esso trasmesso. La significatività statistica della relazione fra le variabili dipendenti e l'insieme dei predittori è verificata mediante test $F$, cui ipotesi nulla nega l'esistenza di tale dipendenza lineare e ipotesi alternativa conferma il legame con almeno un regressore. La bontà di adattamento è stata valutata mediante il coefficiente di determinazione multiplo $R^2$ e la sua versione corretta, per evitare di sovrastimare la capacità del modello. 
 \subsection{Previsione di \textit{Popularity}}
-\subsection{Previsione di \textit{Valence}}
-%------------------------------------------------
-\section{Conclusioni}
+Innanzitutto, viene regredita la variabile \textit{popularity} sull'insieme totale di caratteri quantitativi. I coefficienti di regressione vengono stimati, con livello di confidenza al 95\%, tutti altamente significativi, eccetto il parametro associato alla durata del brano, che non appare pertanto utile per prevedere il grado di diffusione di un brano. Gli unici coefficienti con segno negativo sono relativi ad acusticità (-0.23), presenza di parti esclusivamente strumentali (-0.07), \textit{liveness} (-0.08), presenza di parlato \textit{speechiness} (-0.25) e positività (-0.23). Pertanto, sono da ritenersi più popolari le tracce che contengono strumenti elettronici - hanno dunque bassa \textit{acousticness} -, prive di parti strumentali, registrate in studio, prive di "parlato" e con un sentimento tendente verso una polarità negativa. Al contrario, i fenomeni con il maggior impatto positivo sulla $Y$ sono la ballabilità (0.27), il volume complessivo (0.21) e l'energia del pezzo (0.11). Eseguendo un test $F$ con $\alpha=0.05$, viene rifiutata l'ipotesi di incorrelazione fra la popolarità e il set di caratteri quantitativi. Il coefficiente di determinazione multiplo è abbastanza buono (0.46), ed è pari alla propria versione corretta, indice del fatto che la capacità del modello non viene sopravvalutata.\\
+Come visto nella Sezione \ref{corr}, molte delle variabili incluse nella matrice del disegno sono risultate fortemente correlate. È dunque necessario verificare che il modello appena stimato non sia affetto da problemi di multicollinearità, che possano penalizzarne la correttezza. Questa operazione è possibile grazie all'indice \textit{Variance Inflation Factor (VIF)}, il quale fornisce, per ciascun regressore, l'incremento subito dalla varianza della stima di $\beta$ rispetto alla condizione di perfetta incorrelazione fra le variabili indipendenti. Considerando una soglia pari a 4, la variabile "energia" risulta affetta da un moderato problema di collinearità. Risultava, infatti, essere il fenomeno associato ai più elevati valori di correlazione. L'energia viene pertanto rimossa dal set fi candidati esplicativi. Dopo la rimozione, il coefficiente di regressione associato al volume raggiunge un valore quasi doppio rispetto alla stima precedente (0.38), confermandosi come fattore di maggior influenza sulla popolarità della traccia. L'$R^2$, invece, rimane quasi invariato.\\
+Tale modello è stato infine integrato con le variabili qualitative della chiave, tonalità, presenza di contenuto esplicito e decennio. Le modalità di quest'ultima variabile sono associate a coefficienti molto elevati e tutti altamente significativi. Soltanto due delle classi della chiave, invece, vengono ritenute significativamente correlate alla variabile dipendente. I caratteri quantitativi, esclusa l'energia a priori, sono altamente significativi, ma le stime sono nettamente inferiori rispetto a quelle relative ai decenni. L'introduzione di \textit{Decade} ha pertanto ridimensionato la relativa importanza di tutti gli altri regressori, elevando, però, il coefficiente di determinazione multiplo: $R^2=0.79$, pari alla propria versione corretta. Il test $F$ rifiuta l'ipotesi nulla con un livello di confidenza del 95\%, ribadendo l'evidenza di un forte legame lineare fra \textit{popularity} e il set di predittori. Infine, il calcolo del \textit{VIF} verifica l'assenza di problemi di multicollinearità nella matrice del disegno.\\
+Tuttavia, in Figura \ref{fig:29} e \ref{fig:fig30} è possibile individuare due principali caratteristiche dei residui di regressione ottenuti dall'ultimo modello stimato: l'eteroschedasticità - dato che, come si osserva, le previsioni sui valori più elevati sono associate a residui più variabili - e la distribuzione dei quantili abbastanza differente rispetto alla Normale.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{fig29.png}
+    \label{fig:fig29}
+    \caption{\textit{Scatter plot} dei residui sui valori stimati dal modello.}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{fig30.png}
+    \label{fig:fig30}
+    \caption{Grafico \textit{Quantile-Quantile} per la valutazione della normalità dei residui.}
+\end{figure}
 
+\subsection{Previsione di \textit{Valence}}
+Allo stesso modo, è stato stimato un modello che potesse prevedere il livello di positività trasmesso dal brano tramite il volume, l'energia, il tempo, la ballabilità, il decennio di pubblicazione, la tonalità e la chiave. Tramite test $F$, si rifiuta, con $\alpha=0.05$, l'ipotesi di incorrelazione fra la variabile dipendente e l’insieme dei regressori. Il volume risulta, tuttavia poco significativo - il \textit{pvalue} è 0.03 -, così come alcune modalità della chiave. I decenni sono associati a parametri negativi, eccezion fatta per gli anni '30, e ordinati, stavolta, in ordine cronologico decrescente. Ciò implica che, col passare del tempo, il sentimento tendenziale sia stato progressivamente attratto da una polarità negativa, specialmente nel nuovo millennio.\\
+Il coefficiente di determinazione multiplo è, come la propria versione corretta, pari a 0.4897. Infine, i valori VIF non segnalano alcun problema di multicollinearità.
+%------------------------------------------------
+\section{Conclusioni e Discussione}
+Dalle analisi è evidente come il grado di popolarità su \textit{Spotify} e di positività di un brano dipendano da una serie di grandezze relative sia all'aspetto stilistico - nell'ambito tecnico della composizione e della scelta dei diversi elementi che vanno a comporre il risultato finale -, sia al decennio di pubblicazione. In particolare, quest'ultimo carattere si dimostra predominante: la sua inclusione nei modelli di regressione lineare causa un forte incremento delle misure di bontà di adattamento $R^2$ ed $R^2$ corretto. Appare quindi necessario, per futuri approfondimenti, l'utilizzo di modelli di regressione più complessi: di tipo non lineare e multilivello. In particolare, i secondi potrebbero estrarre utilissime ulteriori informazioni sui fattori più popolari per ciascun decennio, stimando una diversa retta di regressione per ogni decade.
 %------------------------------------------------
 \section*{Codice}
 L'intero codice, implementato con linguaggio \texttt{R}, è disponibile al link: \href{https://github.com/RCrvro/Foundation-of-Prob.-and-Stat.---Final-Project/blob/master/codice.R}{\texttt{github.com/RCrvro/codice.R}}.
